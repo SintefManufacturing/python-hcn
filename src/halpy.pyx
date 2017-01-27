@@ -1,3 +1,5 @@
+cimport numpy as cnp
+import numpy as np
 from libcpp cimport string
 cimport cpp_halpy as cpp
 
@@ -18,6 +20,13 @@ cdef class HTuple:
     def to_string(self):
         hs = self.me.ToString()
         return None
+
+    def to_array(self):
+        cdef int n = self.me.Length()
+        result = np.empty(n, dtype=np.double)
+        for i in range(n):
+            result[i] = self.me[i]
+        return result
 
     def __getitem__(self, int val):
         return self.me[val]

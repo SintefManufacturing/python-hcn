@@ -14,7 +14,7 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple(str)
         HTuple(int)
         HTuple(double)
-        double Length()
+        int Length()
         void assign "operator="(double)
         double operator[](int)
         HString ToString()
