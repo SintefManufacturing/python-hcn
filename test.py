@@ -1,9 +1,17 @@
+from IPython import embed
 import halpy
 
 if __name__ == "__main__":
-    t = halpy.HTuple()
-    d = halpy.HTuple.from_double(0.199)
-    print("LENGTH", t.length())
-    print("LENGTH", d.length())
+    e = halpy.HTuple()
+    d = halpy.HTuple(0.199)
+    #d.append(9.2)
+    s2 = halpy.HTuple("totot is back")
+    print("LENGTH empty", e.length())
+    embed()
+    print("LENGTH double", d.length())
     print("val[0]", d[0])
     print("val array", d.to_array())
+    print("string array", d.to_string())
+    print("String", s)
+    print("String", s[0])
+    #print("String", s.to_string())

@@ -9,7 +9,21 @@ cdef class HTuple:
     cdef cpp.HTuple me
 
     def __cinit__(self, arg=None):
-        self.me = cpp.HTuple()
+        if arg is None:
+            self.me = cpp.HTuple()
+        elif isinstance(arg, float):
+            self.me = cpp.HTuple(<double>arg)
+        elif isinstance(arg, int):
+            self.me = cpp.HTuple(<int>arg)
+        elif isinstance(arg, str):
+            tt = arg.encode()
+            print(1, arg)
+            print(1, tt)
+            print(1, (<char*>tt))
+            print(1, (<char*>tt)[0])
+            self.me = cpp.HTuple((<const char*>tt))
+        else:
+            raise RuntimeError("Argument not supported")
 
     @staticmethod
     def from_double(double val):
@@ -17,22 +31,73 @@ cdef class HTuple:
         t.me.assign(val)
         return t
 
+    @staticmethod
+    def from_string(str val):
+        t = HTuple()
+        cdef bytes py_bytes = val.encode("utf-8")
+        cdef const char* s = py_bytes
+        t.me.assign(s)
+        return t
+
+    def type(self):
+        return self.me.Type()
+
+
     def to_string(self):
-        hs = self.me.ToString()
-        return None
+        cdef cpp.HString hs = self.me.ToString()
+        cdef const char * c_string = hs.Text()
+        cdef bytes py_string = c_string
+        return py_string
 
     def to_array(self):
         cdef int n = self.me.Length()
-        result = np.empty(n, dtype=np.double)
-        for i in range(n):
-            result[i] = self.me[i]
+        dt = self.me.Type()
+        if dt == 0:
+            return None
+        elif dt == 1:
+            result = np.empty(n, dtype=np.int)
+            for i in range(n):
+                result[i] = self.me[i].L()
+        elif dt == 2:
+            result = np.empty(n, dtype=np.double)
+            for i in range(n):
+                result[i] = self.me[i].D()
+        elif dt == 4:
+            result = np.empty(n, dtype=np.string)
+            for i in range(n):
+                result[i] = self.me[i].C()
+        else:
+            raise RuntimeError("unknown data type", dt)
         return result
 
+    def append(self, double val):
+        cdef cpp.HTuple tpl = cpp.HTuple(val)
+        print("my length!", self.me.Length())
+        self.me.Append(tpl)
+        print("my length!", self.me.Length())
+
+    #def append(self, val):
+        #cdef cpp.HTuple tpl = cpp.HTuple()
+        #if isinstance(val, float):
+            #tpl.assign(<double> val)
+        #elif isinstance(val, int):
+            #tpl.assign(<int> val)
+        #self.me.Append(tpl)
+
     def __getitem__(self, int val):
-        return self.me[val]
+        dt = self.me.Type()
+        if dt == 0:
+            return None
+        elif dt == 1:
+            return self.me[val].L()
+        elif dt == 2:
+            return self.me[val].D()
+        elif dt == 4:
+            return self.me[val].C()
 
     def length(self):
         return self.me.Length()
+
 
 #def read_object_model_3d(path, unit_str, a, b):
     #t_path = cpp.Htuple(path)
