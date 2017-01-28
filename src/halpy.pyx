@@ -17,10 +17,6 @@ cdef class HTuple:
             self.me = cpp.HTuple(<int>arg)
         elif isinstance(arg, str):
             tt = arg.encode()
-            print(1, arg)
-            print(1, tt)
-            print(1, (<char*>tt))
-            print(1, (<char*>tt)[0])
             self.me = cpp.HTuple((<const char*>tt))
         else:
             raise RuntimeError("Argument not supported")
@@ -73,7 +69,8 @@ cdef class HTuple:
     def append(self, double val):
         cdef cpp.HTuple tpl = cpp.HTuple(val)
         print("my length!", self.me.Length())
-        self.me.Append(tpl)
+        #self.me.Append(tpl)
+        self.me.add(tpl)
         print("my length!", self.me.Length())
 
     #def append(self, val):
@@ -99,10 +96,16 @@ cdef class HTuple:
         return self.me.Length()
 
 
-#def read_object_model_3d(path, unit_str, a, b):
-    #t_path = cpp.Htuple(path)
-    #t_unit = cpp.HTuple(unit_str)
-    #cpp.ReadObjectModel3d(
+def read_object_model_3d(str path, str scale_str, GenParamName, GenParamValue):
+    t_path = HTuple(path)
+    t_scale = HTuple(scale_str)
+    cdef cpp.HTuple t_name = cpp.HTuple()
+    cdef cpp.HTuple t_value = cpp.HTuple()
+    t_res = HTuple()
+    t_status = HTuple()
+    print("ARGS", t_path[0], t_scale[0])
+    cpp.ReadObjectModel3d(t_path.me, t_scale.me, t_name, t_value, &t_res.me, &t_status.me)
+    return t_res.to_array()
 
 
 

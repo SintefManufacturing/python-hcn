@@ -32,10 +32,14 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void assign "operator="(int)
         void assign "operator="(double)
         void assign "operator="(char*)
+        void add "operator+="(HTuple)
         HTupleElement operator[](int)
         HString ToString() const
         double* DArr()
         HTuple& Append(const HTuple&)
+        void Clear()
 
 
-    void ReadObjectModel3d(HTuple, HTuple, HTuple, HTuple, HTuple, HTuplehv_Status)
+    void ReadObjectModel3d(const HTuple& filename, const HTuple& scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* ObjectModel3D, HTuple* Status)
+
+
