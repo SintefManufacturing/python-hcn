@@ -4,6 +4,15 @@ from libcpp cimport string
 cimport cpp_halpy as cpp
 
 
+from enum import Enum
+
+
+class TupleType(Enum):
+    Int = 1
+    Double = 2
+    String = 4
+
+
 cdef class HTuple:
 
     cdef cpp.HTuple me
@@ -15,6 +24,8 @@ cdef class HTuple:
             self.me = cpp.HTuple(<double>arg)
         elif isinstance(arg, int):
             self.me = cpp.HTuple(<int>arg)
+        elif isinstance(arg, bytes):
+            self.me = cpp.HTuple((<const char*>arg))
         elif isinstance(arg, str):
             tt = arg.encode()
             self.me = cpp.HTuple((<const char*>tt))
@@ -29,15 +40,19 @@ cdef class HTuple:
 
     @staticmethod
     def from_string(str val):
+        val = val.encode("utf-8")
+        return HTuple.from_bytes(val)
+
+    @staticmethod
+    def from_bytes(bytes val):
         t = HTuple()
-        cdef bytes py_bytes = val.encode("utf-8")
+        cdef bytes py_bytes = val
         cdef const char* s = py_bytes
         t.me.assign(s)
         return t
 
     def type(self):
-        return self.me.Type()
-
+        return TupleType(self.me.Type())
 
     def to_string(self):
         cdef cpp.HString hs = self.me.ToString()
@@ -59,12 +74,15 @@ cdef class HTuple:
             for i in range(n):
                 result[i] = self.me[i].D()
         elif dt == 4:
-            result = np.empty(n, dtype=np.string)
+            result = np.empty(n, dtype=np.object)
             for i in range(n):
                 result[i] = self.me[i].C()
         else:
             raise RuntimeError("unknown data type", dt)
         return result
+
+    def to_list(self):
+        return [self[i] for i in range(self.length())]
 
     def append(self, double val):
         cdef cpp.HTuple tpl = cpp.HTuple(val)
