@@ -1,7 +1,7 @@
 cimport numpy as cnp
 import numpy as np
 from libcpp cimport string
-cimport cpp_halpy as cpp
+cimport src.cpp_halpy as cpp
 
 
 from enum import Enum
@@ -84,12 +84,33 @@ cdef class HTuple:
     def to_list(self):
         return [self[i] for i in range(self.length())]
 
-    def append(self, double val):
-        cdef cpp.HTuple tpl = cpp.HTuple(val)
-        print("my length!", self.me.Length())
+    #def append(self, double val):
+        #cdef cpp.HTuple tpl = cpp.HTuple(val)
+        #print("my length!", self.me.Length())
         #self.me.Append(tpl)
-        self.me.add(tpl)
-        print("my length!", self.me.Length())
+        #self.me.add(tpl)
+        #print("my length!", self.me.Length())
+
+
+    def add(self, val):
+        if isinstance(val, float):
+            self.me.add(<double> val)
+        elif isinstance(val, int):
+            self.me.add(<int> val)
+        elif isinstance(val, bytes):
+            self.me.add(<cpp.HTuple> cpp.HTuple((<const char*>val)))
+        else:
+            raise RuntimeError("Unknown type")
+
+    def append(self, val):
+        if isinstance(val, float):
+            self.me.Append(<cpp.HTuple> cpp.HTuple((<double>val)))
+        elif isinstance(val, int):
+            self.me.Append(<cpp.HTuple> cpp.HTuple((<int>val)))
+        elif isinstance(val, bytes):
+            self.me.Append(<cpp.HTuple> cpp.HTuple((<const char*>val)))
+        else:
+            raise RuntimeError("Unknown type")
 
     #def append(self, val):
         #cdef cpp.HTuple tpl = cpp.HTuple()
@@ -126,4 +147,9 @@ def read_object_model_3d(str path, str scale_str, GenParamName, GenParamValue):
     return t_res.to_array()
 
 
+cdef class HObjectModel3D:
 
+    cdef cpp.HObjectModel3D me
+
+    def __cinit__(self):
+        self.me = cpp.HObjectModel3D()

@@ -32,6 +32,8 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void assign "operator="(int)
         void assign "operator="(double)
         void assign "operator="(char*)
+        void add "operator+="(double)
+        void add "operator+="(int)
         void add "operator+="(HTuple)
         HTupleElement operator[](int)
         HString ToString() const
@@ -43,3 +45,12 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
     void ReadObjectModel3d(const HTuple& filename, const HTuple& scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* ObjectModel3D, HTuple* Status)
 
 
+# This is the object oriented interface
+# I am not usre it is interressting from Python, since
+# this object interface is auto generated and not very intuitive
+# probably better to use functions and create our own object 
+# oriented interface in Python
+
+cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
+    cdef cppclass HObjectModel3D:
+        HObjectModel3D()
