@@ -37,12 +37,13 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(d[0], val)
         self.assertEqual(d.type(), halpy.TupleType.String)
 
-
     def test_append(self):
         val = 0.199
         d = halpy.HTuple(val)
         #d.append(3.4)
-
+    
+    def test_read_model(self):
+        res = halpy.read_object_model_3d("arm_base.stl", "mm", None, None)
 
 
 
