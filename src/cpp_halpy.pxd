@@ -25,10 +25,10 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple() except +
         HTuple(const char*) except +
         HTuple(const HString&) except +
-        HTuple(int) except +
+        HTuple(long) except +
         HTuple(double) except +
         HTuple(double*, int) except +
-        HTuple(int*, int) except +
+        HTuple(long*, int) except +
         int Type()
         int Length()
         void assign "operator="(int)
@@ -44,7 +44,9 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void Clear()
 
 
-    void ReadObjectModel3d(const HTuple& filename, const HTuple& scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* ObjectModel3D, HTuple* Status)
+    void ReadObjectModel3d(const HTuple& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* ObjectModel3D, HTuple* Status)
+
+    void SampleObjectModel3d(const HTuple& ObjectModel3D, const HTuple& Method, const HTuple& SampleDistance, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* SampledObjectModel3D)
 
 
 # This is the object oriented interface

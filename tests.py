@@ -43,8 +43,10 @@ class HalpyTests(unittest.TestCase):
         d.append(3.4)
         self.assertEqual(d.length(), 2)
     
-    def test_read_model(self):
-        res = halpy.read_object_model_3d("arm_base.stl", "mm", None, None)
+    def Xtest_read_model(self):
+        res = halpy.read_model(b"b4.ply", b"mm", None, None)
+        #res = halpy.read_model(b"arm_base.stl", b"mm", None, None)
+        print("RES", res)
 
     def test_array_double(self):
         a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
@@ -59,6 +61,18 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(t.length(), 5)
         self.assertEqual(t[0], t[0])
         self.assertEqual(t[4], t[4])
+
+    def test_sample(self):
+        import pcl
+        p = pcl.load("b4.ply")
+        ar = p.to_array()
+        ar = ar.astype(np.double)
+        print("A", ar.shape)
+        i, j = ar.shape
+        ar = ar.reshape(i*j)
+        t = halpy.HTuple.from_array(ar)
+        print ("LENGTH", t.length())
+        #halpy.sample_model(t, b"fasy_compute_normals", 0.001)
 
 
 

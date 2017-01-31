@@ -51,8 +51,8 @@ cdef class HTuple:
         return pyt
 
     @staticmethod
-    def from_array_int(cnp.ndarray[cnp.int_t, ndim=1, mode="c"] arg):
-        cdef cpp.HTuple t = cpp.HTuple(<int*>&arg[0], <int> arg.shape[0])
+    def from_array_int(cnp.ndarray[cnp.long_t, ndim=1, mode="c"] arg):
+        cdef cpp.HTuple t = cpp.HTuple(<long*>&arg[0], <int> arg.shape[0])
         pyt = HTuple()
         pyt.me = t
         return pyt
@@ -87,6 +87,7 @@ cdef class HTuple:
         return py_string
 
     def to_array(self):
+        #FIXME: should be possible to access C array and make numpy array from it instead of looping
         cdef int n = self.me.Length()
         dt = self.me.Type()
         if dt == 0:
@@ -130,6 +131,8 @@ cdef class HTuple:
 
     def __getitem__(self, int val):
         dt = self.me.Type()
+        if val >= self.length():
+            raise ValueError("Out of bound")
         if dt == 0:
             return None
         elif dt == 1:
@@ -143,16 +146,29 @@ cdef class HTuple:
         return self.me.Length()
 
 
-def read_object_model_3d(str path, str scale_str, GenParamName, GenParamValue):
-    t_path = HTuple(path)
-    t_scale = HTuple(scale_str)
-    cdef cpp.HTuple t_name = cpp.HTuple()
-    cdef cpp.HTuple t_value = cpp.HTuple()
+def read_model(const char* path, const char * scale, GenParamName, GenParamValue):
+    #t_path = HTuple(path)
+    #t_scale = HTuple(scale_str)
+    #cdef cpp.HTuple t_name = cpp.HTuple()
+    #cdef cpp.HTuple t_value = cpp.HTuple()
     t_res = HTuple()
     t_status = HTuple()
-    print("ARGS", t_path[0], t_scale[0])
-    cpp.ReadObjectModel3d(t_path.me, t_scale.me, t_name, t_value, &t_res.me, &t_status.me)
+    #cpp.ReadObjectModel3d(t_path.me, t_scale.me, t_name, t_value, &t_res.me, &t_status.me)
+    cpp.ReadObjectModel3d(cpp.HTuple(path), cpp.HTuple(scale), cpp.HTuple(), cpp.HTuple(), &t_res.me, &t_status.me)
+    print("STATUS", t_status.to_string())
     return t_res.to_array()
+
+def sample_model(HTuple t_model, const char* method, double sample_dist):
+    #if isinstance(t_model, np.ndarray):
+        #t_model = HTuple.from_array(t_model)
+    #t_method = HTuple(method)
+    #t_dist = HTuple(sample_dist)
+    #cdef cpp.HTuple t_name = cpp.HTuple()
+    #cdef cpp.HTuple t_value = cpp.HTuple()
+    t_res = HTuple()
+    cpp.SampleObjectModel3d(<cpp.HTuple> t_model.me, cpp.HTuple(method), cpp.HTuple(sample_dist), cpp.HTuple(), cpp.HTuple(), &t_res.me)
+    return t_res.to_array()
+
 
 
 cdef class HObjectModel3D:
