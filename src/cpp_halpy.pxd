@@ -27,6 +27,8 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple(const HString&) except +
         HTuple(int) except +
         HTuple(double) except +
+        HTuple(double*, int) except +
+        HTuple(int*, int) except +
         int Type()
         int Length()
         void assign "operator="(int)

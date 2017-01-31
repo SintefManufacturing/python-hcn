@@ -40,10 +40,26 @@ class HalpyTests(unittest.TestCase):
     def test_append(self):
         val = 0.199
         d = halpy.HTuple(val)
-        #d.append(3.4)
+        d.append(3.4)
+        self.assertEqual(d.length(), 2)
     
     def test_read_model(self):
         res = halpy.read_object_model_3d("arm_base.stl", "mm", None, None)
+
+    def test_array_double(self):
+        a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
+        t = halpy.HTuple.from_array(a)
+        self.assertEqual(t.length(), 5)
+        self.assertEqual(t[0], a[0])
+        self.assertEqual(t[4], t[4])
+
+    def test_array_int(self):
+        a = np.array([1, 2, 3, 4, 5], dtype=np.int)
+        t = halpy.HTuple.from_array(a)
+        self.assertEqual(t.length(), 5)
+        self.assertEqual(t[0], t[0])
+        self.assertEqual(t[4], t[4])
+
 
 
 

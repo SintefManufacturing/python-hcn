@@ -1,7 +1,9 @@
-cimport numpy as cnp
 import numpy as np
+
 from libcpp cimport string
+cimport numpy as cnp
 cimport cpp_halpy as cpp
+from cython.view cimport array as cvarray
 
 
 from enum import Enum
@@ -30,7 +32,31 @@ cdef class HTuple:
             tt = arg.encode()
             self.me = cpp.HTuple((<const char*>tt))
         else:
-            raise RuntimeError("Argument not supported")
+            raise RuntimeError("Argument not supported", arg)
+
+    @staticmethod
+    def from_array(ar):
+        if ar.dtype == np.int:
+            return HTuple.from_array_int(ar)
+        elif ar.dtype == np.double:
+            return HTuple.from_array_double(ar)
+        else:
+            raise RuntimeError("Argument not supported", ar)
+
+    @staticmethod
+    def from_array_double(cnp.ndarray[cnp.double_t, ndim=1, mode="c"] arg):
+        cdef cpp.HTuple t = cpp.HTuple(<double*>&arg[0], <int> arg.shape[0])
+        pyt = HTuple()
+        pyt.me = t
+        return pyt
+
+    @staticmethod
+    def from_array_int(cnp.ndarray[cnp.int_t, ndim=1, mode="c"] arg):
+        cdef cpp.HTuple t = cpp.HTuple(<int*>&arg[0], <int> arg.shape[0])
+        pyt = HTuple()
+        pyt.me = t
+        return pyt
+
 
     @staticmethod
     def from_double(double val):
@@ -83,24 +109,6 @@ cdef class HTuple:
 
     def to_list(self):
         return [self[i] for i in range(self.length())]
-
-    #def append(self, double val):
-        #cdef cpp.HTuple tpl = cpp.HTuple(val)
-        #print("my length!", self.me.Length())
-        #self.me.Append(tpl)
-        #self.me.add(tpl)
-        #print("my length!", self.me.Length())
-
-
-    def add(self, val):
-        if isinstance(val, float):
-            self.me.add(<double> val)
-        elif isinstance(val, int):
-            self.me.add(<int> val)
-        elif isinstance(val, bytes):
-            self.me.add(<cpp.HTuple> cpp.HTuple((<const char*>val)))
-        else:
-            raise RuntimeError("Unknown type")
 
     def append(self, val):
         if isinstance(val, float):
