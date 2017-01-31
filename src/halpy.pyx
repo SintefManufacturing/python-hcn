@@ -1,7 +1,7 @@
 cimport numpy as cnp
 import numpy as np
 from libcpp cimport string
-cimport src.cpp_halpy as cpp
+cimport cpp_halpy as cpp
 
 
 from enum import Enum
