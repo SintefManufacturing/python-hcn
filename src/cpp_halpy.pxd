@@ -5,6 +5,10 @@ from libcpp cimport bool
 
 cdef extern from "HalconCpp.h" namespace "HalconCpp":
 
+    cdef cppclass HPose:
+        HPose() except +
+        HTuple ConvertToTuple()
+
     cdef cppclass HString:
         HString() except +
         HString(const char*) except +
@@ -58,3 +62,10 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:
         HObjectModel3D()
+        HObjectModel3D(HString, HTuple, HTuple, HTuple, HTuple*)
+        HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*)
+        void GenObjectModel3dFromPoints(const HTuple& X, const HTuple& Y, const HTuple& Z);
+        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent);
+        HObjectModel3D ConvexHullObjectModel3d() const;
+        HTuple GetObjectModel3dParams(const HTuple& GenParamName) const;
+

@@ -104,6 +104,11 @@ cdef class HTuple:
             result = np.empty(n, dtype=np.object)
             for i in range(n):
                 result[i] = self.me[i].C()
+        elif dt == 8:
+            # THIS is wrong fix, 8 mean mixed
+            result = np.empty(n, dtype=np.double)
+            for i in range(n):
+                result[i] = self.me[i].D()
         else:
             raise RuntimeError("unknown data type", dt)
         return result
@@ -146,6 +151,12 @@ cdef class HTuple:
         return self.me.Length()
 
 
+cdef tuple_to_array(cpp.HTuple tup):
+    t = HTuple()
+    t.me = tup
+    return t.to_array()
+
+
 def read_model(const char* path, const char * scale, GenParamName, GenParamValue):
     #t_path = HTuple(path)
     #t_scale = HTuple(scale_str)
@@ -171,9 +182,39 @@ def sample_model(HTuple t_model, const char* method, double sample_dist):
 
 
 
-cdef class HObjectModel3D:
+cdef class Model:
 
     cdef cpp.HObjectModel3D me
 
     def __cinit__(self):
         self.me = cpp.HObjectModel3D()
+
+    @staticmethod
+    def from_file(char* path, char * scale):
+        model = Model()
+        cdef cpp.HTuple status;
+        model.me = cpp.HObjectModel3D(cpp.HString(path), cpp.HTuple(scale), cpp.HTuple(), cpp.HTuple(), &status)
+        return model
+        #print("STATUS", status.ToString())
+    
+    def get_bounding_box(self, oriented=True):
+        cdef double x, y, z
+        cdef cpp.HPose pose = self.me.SmallestBoundingBoxObjectModel3d("oriented", &x, &y, &z)
+        #p = HTuple()
+        #p.me = pose.ConvertToTuple()
+        return x, y, z
+
+    def to_array(self):
+        cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_x"))
+        cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_y"))
+        cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_z"))
+        nx = tuple_to_array(x)
+        ny = tuple_to_array(y)
+        nz = tuple_to_array(z)
+        return np.vstack((nx, ny, nz))
+
+    def normals_to_array(self):
+        cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_x"))
+        cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_y"))
+        cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_z"))
+

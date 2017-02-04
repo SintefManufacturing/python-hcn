@@ -43,10 +43,14 @@ class HalpyTests(unittest.TestCase):
         d.append(3.4)
         self.assertEqual(d.length(), 2)
     
-    def Xtest_read_model(self):
-        res = halpy.read_model(b"b4.ply", b"mm", None, None)
+    def test_read_model(self):
+        m = halpy.Model.from_file(b"f.obj", b"m")
+        print("BOUND", m.get_bounding_box())
+        embed()
+        #res = halpy.read_model(b"b4.obj", b"mm", None, None)
         #res = halpy.read_model(b"arm_base.stl", b"mm", None, None)
-        print("RES", res)
+        #print("RES", res)
+        #embed()
 
     def test_array_double(self):
         a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
