@@ -86,10 +86,11 @@ class HalpyTests(unittest.TestCase):
         new = m.sample(2)
         self.assertEqual(len(new.to_array()), 2)
 
-    def Xtest_write(self):
+    def test_exception(self):
         ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]])
         m = halpy.Model.from_array(ar)
-        m.to_file("obj", "/t.obj")
+        with self.assertRaises(RuntimeError):
+            m.to_file("obj", "/t.obj")
 
 
 
@@ -100,22 +101,3 @@ class HalpyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-"""
-    e = halpy.HTuple()
-    #d.append(9.2)
-    s = halpy.HTuple("totot is back")
-    print("LENGTH empty", e.length())
-    #embed()
-    print("val[0]", d[0])
-    print("val array", d.to_array())
-    #print("string array", d.to_string())
-    print("String", s.length())
-    print("String", s[0])
-    #print("String", s.to_string())
-    print("Try read model")
-    try:
-        res = halpy.read_object_model_3d("arm_base.stl", "mm", None, None)
-    except ex:
-        print("Exception", ex)
-    print(res)
-"""

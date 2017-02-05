@@ -2,22 +2,26 @@ from libc.stdint cimport uint32_t, uint16_t
 from libcpp cimport string
 from libcpp cimport bool
 
+cdef inline int raise_py_error() except *:
+    # unfortunately no way to get details from halcon exceptions here....
+    raise RuntimeError("Halcon Error")
+
 
 cdef extern from "HalconCpp.h" namespace "HalconCpp":
 
     cdef cppclass HPose:
-        HPose() except +
+        HPose() except +raise_py_error
         HTuple ConvertToTuple()
 
     cdef cppclass HString:
-        HString() except +
-        HString(const char*) except +
+        HString() except +raise_py_error
+        HString(const char*) except +raise_py_error
         const char* Text() const
 
     cdef cppclass HTupleElement:
-        HTupleElement() except +
-        HTupleElement(double) except +
-        HTupleElement(int) except +
+        HTupleElement() except +raise_py_error
+        HTupleElement(double) except +raise_py_error
+        HTupleElement(int) except +raise_py_error
         int Type()
         int I()
         int L()
@@ -26,13 +30,13 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         const char* C()
 
     cdef cppclass HTuple:
-        HTuple() except +
-        HTuple(const char*) except +
-        HTuple(const HString&) except +
-        HTuple(long) except +
-        HTuple(double) except +
-        HTuple(double*, int) except +
-        HTuple(long*, int) except +
+        HTuple() except +raise_py_error
+        HTuple(const char*) except +raise_py_error
+        HTuple(const HString&) except +raise_py_error
+        HTuple(long) except +raise_py_error
+        HTuple(double) except +raise_py_error
+        HTuple(double*, int) except +raise_py_error
+        HTuple(long*, int) except +raise_py_error
         int Type()
         int Length()
         void assign "operator="(int)
@@ -42,27 +46,27 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void add "operator+="(int)
         void add "operator+="(HTuple)
         HTupleElement operator[](int)
-        HString ToString() const
-        double* DArr()
-        HTuple& Append(const HTuple&)
+        HString ToString() const 
+        double* DArr()  
+        HTuple& Append(const HTuple&) except +raise_py_error
         void Clear()
 
 
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:
         #constructors
-        HObjectModel3D() except +
-        HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z) except +
-        HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status) except +
-        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent) except +
-        void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius) except +
+        HObjectModel3D() except +raise_py_error
+        HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z) except +raise_py_error
+        HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status) except +raise_py_error
+        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent) except +raise_py_error
+        void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius) except +raise_py_error
 
         #write
-        void WriteObjectModel3d(const HString& FileType, const HString& FileName, const HTuple& GenParamName, const HTuple& GenParamValue) const
+        void WriteObjectModel3d(const HString& FileType, const HString& FileName, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
 
         #operations
         HObjectModel3D SelectPointsObjectModel3d(const char* Attrib, double MinValue, double MaxValue) const;
-        HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*)
+        HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*) except +raise_py_error
         HObjectModel3D ConvexHullObjectModel3d() const;
         HTuple GetObjectModel3dParams(const HTuple& GenParamName) const;
         HObjectModel3D FitPrimitivesObjectModel3d(const HTuple& GenParamName, const HTuple& GenParamValue) const;

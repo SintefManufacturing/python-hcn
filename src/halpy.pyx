@@ -233,8 +233,8 @@ cdef class Model:
         m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
         return m
 
-    def Xto_file(self, str filetype, str path):
-        self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())
+    def to_file(self, str filetype, str path):
+        self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())               
 
 
 
