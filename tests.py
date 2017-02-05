@@ -58,7 +58,8 @@ class HalpyTests(unittest.TestCase):
     def test_bounding_box(self):
         ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], order="C")
         m = halpy.Model.from_array(ar)
-        print("BOUND", m.get_bounding_box())
+        #print("BOUND", m.get_bounding_box())
+        #FIXME: check result
 
     def test_array_double(self):
         a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
@@ -75,9 +76,15 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(t[4], t[4])
 
     def test_convex_hull(self):
-        ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], order="C")
+        ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]])
         m = halpy.Model.from_array(ar)
         ch = m.get_convex_hull()
+
+    def test_sample(self):
+        ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]])
+        m = halpy.Model.from_array(ar)
+        new = m.sample(2)
+        self.assertEqual(len(new.to_array()), 2)
 
 
 

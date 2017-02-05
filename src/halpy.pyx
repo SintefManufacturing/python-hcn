@@ -227,5 +227,10 @@ cdef class Model:
         m.me = self.me.ConvexHullObjectModel3d()
         return m
 
+    def sample(self, double dist, str method="fast"):
+        m = Model()
+        m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
+        return m
+
 
 
