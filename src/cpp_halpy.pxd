@@ -48,24 +48,24 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void Clear()
 
 
-    void ReadObjectModel3d(const HTuple& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* ObjectModel3D, HTuple* Status)
-
-    void SampleObjectModel3d(const HTuple& ObjectModel3D, const HTuple& Method, const HTuple& SampleDistance, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* SampledObjectModel3D)
-
-
-# This is the object oriented interface
-# I am not usre it is interressting from Python, since
-# this object interface is auto generated and not very intuitive
-# probably better to use functions and create our own object 
-# oriented interface in Python
-
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:
+        #constructors
         HObjectModel3D()
-        HObjectModel3D(HString, HTuple, HTuple, HTuple, HTuple*)
-        HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*)
-        void GenObjectModel3dFromPoints(const HTuple& X, const HTuple& Y, const HTuple& Z);
+        HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z)
+        HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status);
         void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent);
+        void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius);
+
+        HObjectModel3D SelectPointsObjectModel3d(const char* Attrib, double MinValue, double MaxValue) const;
+        HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*)
         HObjectModel3D ConvexHullObjectModel3d() const;
         HTuple GetObjectModel3dParams(const HTuple& GenParamName) const;
-
+        HObjectModel3D FitPrimitivesObjectModel3d(const HTuple& GenParamName, const HTuple& GenParamValue) const;
+        HObjectModel3D SurfaceNormalsObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue) const;
+        HObjectModel3D SmoothObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue) const;
+        #HSurfaceModel CreateSurfaceModel(double RelSamplingDistance, const char* GenParamName, const char* GenParamValue) const;
+        void DistanceObjectModel3d(const HObjectModel3D& ObjectModel3DTo, const HPose& Pose, double MaxDistance, const char* GenParamName, const char* GenParamValue) const;
+        HObjectModel3D SampleObjectModel3d(const char* Method, double SampleDistance, const HTuple& GenParamName, const HTuple& GenParamValue) const;
+        
+        HObjectModel3D EdgesObjectModel3d(const HTuple& MinAmplitude, const HTuple& GenParamName, const HTuple& GenParamValue) const;

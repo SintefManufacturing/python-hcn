@@ -151,35 +151,23 @@ cdef class HTuple:
         return self.me.Length()
 
 
-cdef tuple_to_array(cpp.HTuple tup):
+cdef _ht2ar(cpp.HTuple tup):
+    """
+    cpp.HTuple to numpy array
+    """
     t = HTuple()
     t.me = tup
     return t.to_array()
 
 
-def read_model(const char* path, const char * scale, GenParamName, GenParamValue):
-    #t_path = HTuple(path)
-    #t_scale = HTuple(scale_str)
-    #cdef cpp.HTuple t_name = cpp.HTuple()
-    #cdef cpp.HTuple t_value = cpp.HTuple()
-    t_res = HTuple()
-    t_status = HTuple()
-    #cpp.ReadObjectModel3d(t_path.me, t_scale.me, t_name, t_value, &t_res.me, &t_status.me)
-    cpp.ReadObjectModel3d(cpp.HTuple(path), cpp.HTuple(scale), cpp.HTuple(), cpp.HTuple(), &t_res.me, &t_status.me)
-    print("STATUS", t_status.to_string())
-    return t_res.to_array()
-
-def sample_model(HTuple t_model, const char* method, double sample_dist):
-    #if isinstance(t_model, np.ndarray):
-        #t_model = HTuple.from_array(t_model)
-    #t_method = HTuple(method)
-    #t_dist = HTuple(sample_dist)
-    #cdef cpp.HTuple t_name = cpp.HTuple()
-    #cdef cpp.HTuple t_value = cpp.HTuple()
-    t_res = HTuple()
-    cpp.SampleObjectModel3d(<cpp.HTuple> t_model.me, cpp.HTuple(method), cpp.HTuple(sample_dist), cpp.HTuple(), cpp.HTuple(), &t_res.me)
-    return t_res.to_array()
-
+cdef cpp.HTuple _ar2ht(cnp.ndarray ar):
+    """
+    nupy array to cpp.HTuple
+    """
+    if not ar.flags['C_CONTIGUOUS']:
+        ar = np.ascontiguousarray(ar)
+    cdef HTuple t = HTuple.from_array(ar)
+    return t.me
 
 
 cdef class Model:
@@ -197,6 +185,12 @@ cdef class Model:
         return model
         #print("STATUS", status.ToString())
     
+    @staticmethod
+    def from_array(ar):
+        model = Model()
+        model.me = cpp.HObjectModel3D(_ar2ht(ar[:, 0]), _ar2ht(ar[:, 1]), _ar2ht(ar[:, 2]))
+        return model
+
     def get_bounding_box(self, oriented=True):
         cdef double x, y, z
         cdef cpp.HPose pose = self.me.SmallestBoundingBoxObjectModel3d("oriented", &x, &y, &z)
@@ -208,13 +202,30 @@ cdef class Model:
         cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_x"))
         cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_y"))
         cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_z"))
-        nx = tuple_to_array(x)
-        ny = tuple_to_array(y)
-        nz = tuple_to_array(z)
-        return np.vstack((nx, ny, nz))
+        nx = _ht2ar(x)
+        nx.shape = -11, 1
+        ny = _ht2ar(y)
+        ny.shape = -1, 1
+        nz = _ht2ar(z)
+        nz.shape = -1, 1
+        return np.hstack((nx, ny, nz))
 
     def normals_to_array(self):
         cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_x"))
         cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_y"))
         cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_z"))
+        nx = _ht2ar(x)
+        nx.shape = -11, 1
+        ny = _ht2ar(y)
+        ny.shape = -1, 1
+        nz = _ht2ar(z)
+        nz.shape = -1, 1
+        return np.hstack((nx, ny, nz))
+
+    def get_convex_hull(self):
+        m = Model()
+        m.me = self.me.ConvexHullObjectModel3d()
+        return m
+
+
 

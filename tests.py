@@ -44,13 +44,21 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(d.length(), 2)
     
     def test_read_model(self):
-        m = halpy.Model.from_file(b"f.obj", b"m")
+        m = halpy.Model.from_file(b"simple.obj", b"m")
+        ar = m.to_array()
+        np.testing.assert_array_equal(ar[0], np.array([1, 1, 1]))
+        np.testing.assert_array_equal(ar[3], np.array([1, 1, 2]))
+
+    def test_to_from_array(self):
+        ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], order="C")
+        m = halpy.Model.from_array(ar)
+        new = m.to_array()
+        np.testing.assert_array_equal(ar, new)
+
+    def test_bounding_box(self):
+        ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], order="C")
+        m = halpy.Model.from_array(ar)
         print("BOUND", m.get_bounding_box())
-        embed()
-        #res = halpy.read_model(b"b4.obj", b"mm", None, None)
-        #res = halpy.read_model(b"arm_base.stl", b"mm", None, None)
-        #print("RES", res)
-        #embed()
 
     def test_array_double(self):
         a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
@@ -66,17 +74,12 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(t[0], t[0])
         self.assertEqual(t[4], t[4])
 
-    def test_sample(self):
-        import pcl
-        p = pcl.load("b4.ply")
-        ar = p.to_array()
-        ar = ar.astype(np.double)
-        print("A", ar.shape)
-        i, j = ar.shape
-        ar = ar.reshape(i*j)
-        t = halpy.HTuple.from_array(ar)
-        print ("LENGTH", t.length())
-        #halpy.sample_model(t, b"fasy_compute_normals", 0.001)
+    def test_convex_hull(self):
+        ar = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 2]], order="C")
+        m = halpy.Model.from_array(ar)
+        ch = m.get_convex_hull()
+
+
 
 
 
