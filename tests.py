@@ -44,7 +44,7 @@ class HalpyTests(unittest.TestCase):
         self.assertEqual(d.length(), 2)
     
     def test_read_model(self):
-        m = halpy.Model.from_file(b"simple.obj", b"m")
+        m = halpy.Model.from_file("simple.obj", "m")
         ar = m.to_array()
         np.testing.assert_array_equal(ar[0], np.array([1, 1, 1]))
         np.testing.assert_array_equal(ar[3], np.array([1, 1, 2]))
@@ -85,6 +85,12 @@ class HalpyTests(unittest.TestCase):
         m = halpy.Model.from_array(ar)
         new = m.sample(2)
         self.assertEqual(len(new.to_array()), 2)
+
+    def Xtest_write(self):
+        ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]])
+        m = halpy.Model.from_array(ar)
+        m.to_file("obj", "/t.obj")
+
 
 
 

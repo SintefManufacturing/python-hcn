@@ -178,10 +178,11 @@ cdef class Model:
         self.me = cpp.HObjectModel3D()
 
     @staticmethod
-    def from_file(char* path, char * scale):
+    def from_file(str path, str scale):
         model = Model()
+        cdef bytes bscale = scale.encode() # no idea why I need thi intemediary step for HTuple and not for HString??
         cdef cpp.HTuple status;
-        model.me = cpp.HObjectModel3D(cpp.HString(path), cpp.HTuple(scale), cpp.HTuple(), cpp.HTuple(), &status)
+        model.me = cpp.HObjectModel3D(cpp.HString(path.encode()), cpp.HTuple(bscale), cpp.HTuple(), cpp.HTuple(), &status)
         return model
         #print("STATUS", status.ToString())
     
@@ -231,6 +232,9 @@ cdef class Model:
         m = Model()
         m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
         return m
+
+    def Xto_file(self, str filetype, str path):
+        self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())
 
 
 

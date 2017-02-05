@@ -51,12 +51,16 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:
         #constructors
-        HObjectModel3D()
-        HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z)
-        HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status);
-        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent);
-        void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius);
+        HObjectModel3D() except +
+        HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z) except +
+        HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status) except +
+        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent) except +
+        void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius) except +
 
+        #write
+        void WriteObjectModel3d(const HString& FileType, const HString& FileName, const HTuple& GenParamName, const HTuple& GenParamValue) const
+
+        #operations
         HObjectModel3D SelectPointsObjectModel3d(const char* Attrib, double MinValue, double MaxValue) const;
         HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*)
         HObjectModel3D ConvexHullObjectModel3d() const;
