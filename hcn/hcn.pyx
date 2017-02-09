@@ -2,7 +2,7 @@ import numpy as np
 
 from libcpp cimport string
 cimport numpy as cnp
-cimport cpp_halpy as cpp
+cimport hcn.cpp_hcn as cpp
 from cython.view cimport array as cvarray
 
 
@@ -123,7 +123,6 @@ cdef class HTuple:
         result = []
         for i in range(self.length()):
             et = self.me[i].Type()
-            print("ET", et)
             if et == 1:
                 result.append(self.me[i].L())
             elif et == 2:
@@ -167,8 +166,6 @@ cdef _ht2ar(cpp.HTuple tup):
     """
     t = HTuple()
     t.me = tup
-    print("TYPE", t.type())
-    print("LIST", t.to_list())
     return t.to_array_double()
 
 
