@@ -13,6 +13,7 @@ class TupleType(Enum):
     Int = 1
     Double = 2
     String = 4
+    Mixed = 8
 
 
 cdef class HTuple:
@@ -57,7 +58,6 @@ cdef class HTuple:
         pyt.me = t
         return pyt
 
-
     @staticmethod
     def from_double(double val):
         t = HTuple()
@@ -86,35 +86,53 @@ cdef class HTuple:
         cdef bytes py_string = c_string
         return py_string
 
-    def to_array(self):
-        #FIXME: should be possible to access C array and make numpy array from it instead of looping
+    def to_array_double(self):
         cdef int n = self.me.Length()
-        dt = self.me.Type()
+        #ToDarr() instead of Darr() might generate an extra copy, but also works for mixed type
+        cdef cnp.double_t[:] view = <cnp.double_t[:n]> self.me.ToDArr()
+        return np.asarray(view)
+
+    def to_array_int(self):
+        cdef int n = self.me.Length()
+        #cdef cnp.long_t[:] view = <cnp.long_t[:n]> self.me.LArr()  # cython does not want this..
+        cdef long[:] view = <long[:n]> self.me.ToLArr()
+        return np.asarray(view)
+
+    def to_array_string(self):
+        cdef int n = self.me.Length()
+        result = cnp.empty(n, dtype=np.object)
+        for i in range(n):
+            result[i] = self.me[i].C()
+
+    def to_array(self):
+        dt = self.me.Type() 
         if dt == 0:
             return None
         elif dt == 1:
-            result = np.empty(n, dtype=np.int)
-            for i in range(n):
-                result[i] = self.me[i].L()
+            return self.to_array_int()
         elif dt == 2:
-            result = np.empty(n, dtype=np.double)
-            for i in range(n):
-                result[i] = self.me[i].D()
+            return self.to_array_double()
         elif dt == 4:
-            result = np.empty(n, dtype=np.object)
-            for i in range(n):
-                result[i] = self.me[i].C()
+            return self.to_array_string()
         elif dt == 8:
-            # THIS is wrong fix, 8 mean mixed
-            result = np.empty(n, dtype=np.double)
-            for i in range(n):
-                result[i] = self.me[i].D()
+            raise RuntimeError("HTuple of type mixed cannot be converted to numpy array, if you know its type try to call to_array_double or to_array_int")
         else:
             raise RuntimeError("unknown data type", dt)
-        return result
 
     def to_list(self):
-        return [self[i] for i in range(self.length())]
+        result = []
+        for i in range(self.length()):
+            et = self.me[i].Type()
+            print("ET", et)
+            if et == 1:
+                result.append(self.me[i].L())
+            elif et == 2:
+                result.append(self.me[i].D())
+            elif et == 4:
+                result.append(self.me[i].S().Text())
+            else:
+                raise RuntimeError("unknown data type %s for element %s".format(et, i))
+        return result
 
     def append(self, val):
         if isinstance(val, float):
@@ -125,14 +143,6 @@ cdef class HTuple:
             self.me.Append(<cpp.HTuple> cpp.HTuple((<const char*>val)))
         else:
             raise RuntimeError("Unknown type")
-
-    #def append(self, val):
-        #cdef cpp.HTuple tpl = cpp.HTuple()
-        #if isinstance(val, float):
-            #tpl.assign(<double> val)
-        #elif isinstance(val, int):
-            #tpl.assign(<int> val)
-        #self.me.Append(tpl)
 
     def __getitem__(self, int val):
         dt = self.me.Type()
@@ -153,11 +163,13 @@ cdef class HTuple:
 
 cdef _ht2ar(cpp.HTuple tup):
     """
-    cpp.HTuple to numpy array
+    cpp.HTuple to numpy array double
     """
     t = HTuple()
     t.me = tup
-    return t.to_array()
+    print("TYPE", t.type())
+    print("LIST", t.to_list())
+    return t.to_array_double()
 
 
 cdef cpp.HTuple _ar2ht(cnp.ndarray ar):

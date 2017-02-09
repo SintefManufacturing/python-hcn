@@ -9,6 +9,15 @@ cdef inline int raise_py_error() except *:
 
 cdef extern from "HalconCpp.h" namespace "HalconCpp":
 
+    cdef union Hpar:
+        double d
+        char* s
+        long l
+
+    cdef struct Hcpar:
+        Hpar par
+        int type
+
     cdef cppclass HPose:
         HPose() except +raise_py_error
         HTuple ConvertToTuple()
@@ -19,13 +28,13 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         const char* Text() const
 
     cdef cppclass HTupleElement:
-        HTupleElement() except +raise_py_error
+        #HTupleElement() except +raise_py_error
         HTupleElement(double) except +raise_py_error
         HTupleElement(int) except +raise_py_error
         int Type()
-        int I()
         int L()
         double D()
+        Hcpar P()
         HString S()
         const char* C()
 
@@ -39,6 +48,15 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple(long*, int) except +raise_py_error
         int Type()
         int Length()
+
+        long*  LArr();
+        double* DArr();
+        char**  SArr();
+        long*  ToLArr();
+        double* ToDArr();
+        char**  ToSArr();
+        Hcpar*  ToPArr();
+
         void assign "operator="(int)
         void assign "operator="(double)
         void assign "operator="(char*)
@@ -46,8 +64,7 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void add "operator+="(int)
         void add "operator+="(HTuple)
         HTupleElement operator[](int)
-        HString ToString() const 
-        double* DArr()  
+        HString ToString()
         HTuple& Append(const HTuple&) except +raise_py_error
         void Clear()
 
