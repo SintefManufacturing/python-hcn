@@ -6,6 +6,8 @@ import hcn
 
 from IPython import embed
 
+import math3d as m3d
+
 class TestTuple(unittest.TestCase):
 
     def test_tuple_double(self):
@@ -60,16 +62,16 @@ class TestTuple(unittest.TestCase):
 
    
 
-class TestsModel(unittest.TestCase):
+class TestsModel3D(unittest.TestCase):
     def test_read_model(self):
-        m = hcn.Model.from_file("simple.obj", "m")
+        m = hcn.Model3D.from_file("simple.obj", "m")
         ar = m.to_array()
         np.testing.assert_array_equal(ar[0], np.array([1, 1, 1]))
         np.testing.assert_array_equal(ar[3], np.array([1, 1, 2]))
 
     def test_to_from_array_model(self):
         ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]], dtype=np.double)
-        m = hcn.Model.from_array(ar)
+        m = hcn.Model3D.from_array(ar)
         new = m.to_array()
         np.testing.assert_array_equal(ar, new)
 
@@ -96,7 +98,13 @@ class TestsModel(unittest.TestCase):
 
     def _get_simple_model(self):
         ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]], dtype=np.double)
-        return hcn.Model.from_array(ar)
+        return hcn.Model3D.from_array(ar)
+    
+    def test_plane(self):
+        t = m3d.Transform()
+        t.pos = m3d.Vector(1, 2, 3)
+        p = hcn.Plane(t, 1, 2)
+        #print("RES", p.to_array())
 
 
 

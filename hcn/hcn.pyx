@@ -179,7 +179,14 @@ cdef cpp.HTuple _ar2ht(cnp.ndarray ar):
     return t.me
 
 
-cdef class Model:
+cdef cpp.HPose transform_to_hpose(trans):
+    cdef int rx, ry, rz 
+    rx, ry, rz = trans.orient.to_euler("xyz")
+    cdef cpp.HPose pose = cpp.HPose(trans.pos.x, trans.pos.y, trans.pos.z, rx, ry, rz, "Rp+T", "gba", "point")
+    return pose
+
+
+cdef class Model3D:
 
     cdef cpp.HObjectModel3D me
 
@@ -188,7 +195,7 @@ cdef class Model:
 
     @staticmethod
     def from_file(str path, str scale):
-        model = Model()
+        model = Model3D()
         cdef bytes bscale = scale.encode() # no idea why I need thi intemediary step for HTuple and not for HString??
         cdef cpp.HTuple status;
         model.me = cpp.HObjectModel3D(cpp.HString(path.encode()), cpp.HTuple(bscale), cpp.HTuple(), cpp.HTuple(), &status)
@@ -197,7 +204,7 @@ cdef class Model:
     
     @staticmethod
     def from_array(ar):
-        model = Model()
+        model = Model3D()
         model.me = cpp.HObjectModel3D(_ar2ht(ar[:, 0]), _ar2ht(ar[:, 1]), _ar2ht(ar[:, 2]))
         return model
 
@@ -233,17 +240,25 @@ cdef class Model:
         return np.hstack((nx, ny, nz))
 
     def get_convex_hull(self):
-        m = Model()
+        m = Model3D()
         m.me = self.me.ConvexHullObjectModel3d()
         return m
 
     def sample(self, double dist, str method="fast"):
-        m = Model()
+        m = Model3D()
         m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
         return m
 
     def to_file(self, str filetype, str path):
         self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())               
+
+
+cdef class Plane(Model3D):
+    def __init__(self, trans, xext, yext):
+        Model3D.__init__(self)
+        cdef cpp.HPose pose = transform_to_hpose(trans)
+        self.me.GenPlaneObjectModel3d(pose, cpp.HTuple(), cpp.HTuple())
+        #self.sample(0.2)
 
 
 
