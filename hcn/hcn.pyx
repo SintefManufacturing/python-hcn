@@ -126,18 +126,7 @@ cdef class HTuple:
             raise RuntimeError("unknown data type", dt)
 
     def to_list(self):
-        result = []
-        for i in range(self.length()):
-            et = self.me[i].Type()
-            if et == 1:
-                result.append(self.me[i].L())
-            elif et == 2:
-                result.append(self.me[i].D())
-            elif et == 4:
-                result.append(self.me[i].S().Text())
-            else:
-                raise RuntimeError("unknown data type %s for element %s".format(et, i))
-        return result
+        return [self[i] for i in range(self.length()) ]
 
     def append(self, val):
         if isinstance(val, float):
