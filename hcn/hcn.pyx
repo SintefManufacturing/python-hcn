@@ -47,7 +47,7 @@ cdef class HTuple:
     @staticmethod
     def from_list(arg):
         pyt = HTuple()
-        pyt.me = list2tuple(arg)
+        pyt.me = _list2tuple(arg)
         return pyt
 
     @staticmethod
@@ -150,9 +150,9 @@ cdef class HTuple:
             raise RuntimeError("Unknown type")
 
     def __getitem__(self, int val):
-        dt = self.me.Type()
         if val >= self.length():
             raise ValueError("Out of bound")
+        dt = self.me[val].Type()
         if dt == 0:
             return None
         elif dt == 1:
@@ -160,25 +160,27 @@ cdef class HTuple:
         elif dt == 2:
             return self.me[val].D()
         elif dt == 4:
-            return self.me[val].C()
+            return self.me[val].S().Text()
+        else:
+            raise RuntimeError("Unknown type", dt)
 
     def length(self):
         return self.me.Length()
 
 
-cdef _append_double(cpp.HTuple tup, double val):
+cdef _append_double(cpp.HTuple& tup, double val):
     tup.Append(cpp.HTuple(val))
 
 
-cdef _append_int(cpp.HTuple tup, long val):
+cdef _append_int(cpp.HTuple& tup, long val):
     tup.Append(cpp.HTuple(val))
 
 
-cdef _append_bytes(cpp.HTuple tup, bytes val):
+cdef _append_bytes(cpp.HTuple& tup, bytes val):
     tup.Append(cpp.HTuple(val))
 
 
-cdef cpp.HTuple list2tuple(arg):
+cdef cpp.HTuple _list2tuple(arg):
     cdef cpp.HTuple tup
     for i in arg:
         if isinstance(i, float):
@@ -292,7 +294,7 @@ cdef class Model3D:
         vals.append(knn)
         names.append(b"mls_order")
         vals.append(order)
-        m.me = self.me.SmoothObjectModel3d(b"mls", list2tuple(names), list2tuple(vals))
+        m.me = self.me.SmoothObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
 
     def create_surface_mode(self, dist):
@@ -306,7 +308,7 @@ cdef class Model3D:
         vals.append(knn)
         names.append(b"mls_order")
         vals.append(order)
-        m.me = self.me.SurfaceNormalsObjectModel3d(b"mls", list2tuple(names), list2tuple(vals))
+        m.me = self.me.SurfaceNormalsObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
 
 

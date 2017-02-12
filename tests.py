@@ -60,6 +60,16 @@ class TestTuple(unittest.TestCase):
         self.assertEqual(t[0], t[0])
         self.assertEqual(t[4], t[4])
 
+    def test_mixed(self):
+        l = [1, 2.5, b"jkl", "oøl"]
+        tup = hcn.HTuple.from_list(l)
+        self.assertEqual(tup.length(), 4)
+        self.assertEqual(tup[0], 1)
+        self.assertEqual(tup[2], b"jkl")
+        with self.assertRaises(ValueError):
+            print(tup[5])
+
+
    
 
 class TestsModel3D(unittest.TestCase):
@@ -112,9 +122,10 @@ class TestsModel3D(unittest.TestCase):
 
     def test_normals(self):
         m = hcn.Model3D.from_file("simple.obj", "m")
-        print("F", m.normals_to_array())
+        #print("F", m.normals_to_array())
         m.compute_normals(60, 2)
-        print("E", m.normals_to_array())
+        #print("E", m.normals_to_array())
+        # FIXME
 
 
 
