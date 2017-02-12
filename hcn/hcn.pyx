@@ -304,6 +304,32 @@ cdef class Model3D:
     def to_file(self, str filetype, str path):
         self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())               
 
+    def select_points(self, str attr, double min_val, double max_val): 
+        """
+        attr is one of:
+            point_coord_x
+            point_coord_y
+            point_coord_z
+            point_normal_x
+            point_normal_y
+            point_normal_z
+            etc
+
+        """
+        m = Model3D()
+        m.me = self.me.SelectPointsObjectModel3d(attr.encode(), min_val, max_val)
+        return m
+
+    def select_x(self, min_val, max_val):
+        return self.select_points("point_coord_x", min_val, max_val)
+
+    def select_y(self, min_val, max_val):
+        return self.select_points("point_coord_y", min_val, max_val)
+
+    def select_z(self, min_val, max_val):
+        return self.select_points("point_coord_z", min_val, max_val)
+
+
 
 cdef class Plane(Model3D):
     def __init__(self, trans, xext, yext):

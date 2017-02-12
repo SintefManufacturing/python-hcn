@@ -95,6 +95,12 @@ class TestsModel3D(unittest.TestCase):
         m = self._get_simple_model()
         ch = m.get_convex_hull()
 
+    def test_select(self):
+        m = self._get_simple_model()
+        m = m.select_x(0, 1)
+        ar = m.to_array()
+        self.assertTrue(max(ar[:,0]) <= 1)
+
     def test_sample(self):
         m = self._get_simple_model()
         new = m.sampled(2)

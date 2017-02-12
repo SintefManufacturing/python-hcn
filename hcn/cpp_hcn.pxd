@@ -88,7 +88,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         void WriteObjectModel3d(const HString& FileType, const HString& FileName, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
 
         #operations
-        HObjectModel3D SelectPointsObjectModel3d(const char* Attrib, double MinValue, double MaxValue) const;
+        HObjectModel3D SelectPointsObjectModel3d(const char* Attrib, double MinValue, double MaxValue) except +raise_py_error
         HPose SmallestBoundingBoxObjectModel3d(const char*, double*, double*, double*) except +raise_py_error
         HObjectModel3D ConvexHullObjectModel3d() except +raise_py_error
         HTuple GetObjectModel3dParams(const HTuple& GenParamName) except +raise_py_error
