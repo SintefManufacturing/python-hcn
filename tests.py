@@ -101,6 +101,10 @@ class TestsModel3D(unittest.TestCase):
         ar = m.to_array()
         self.assertTrue(max(ar[:,0]) <= 1)
 
+    def test_create_surface(self):
+        m = self._get_simple_model()
+        #s = m.create_surface_model(0.1)
+
     def test_sample(self):
         m = self._get_simple_model()
         new = m.sampled(2)

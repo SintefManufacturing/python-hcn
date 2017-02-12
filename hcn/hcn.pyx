@@ -209,6 +209,14 @@ cdef cpp.HPose transform_to_hpose(trans):
     return pose
 
 
+cdef class Surface:
+
+    cdef cpp.HSurfaceModel me
+
+    def __cinit__(self):
+        self.me = cpp.HSurfaceModel()
+
+
 cdef class Model3D:
 
     cdef cpp.HObjectModel3D me
@@ -286,8 +294,14 @@ cdef class Model3D:
         m.me = self.me.SmoothObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
 
-    def create_surface_mode(self, dist):
-        pass
+    def create_surface_model(self, double dist, invert_normals="false"):
+        s = Surface()
+        names = []
+        vals = []
+        names.append(b"model_invert_normals")
+        vals.append(invert_normals)
+        s.me = self.me.CreateSurfaceModel(dist, _list2tuple(names), _list2tuple(vals))
+        return s
 
     def compute_normals(self, int knn, int order):
         m = Model3D()
@@ -299,7 +313,6 @@ cdef class Model3D:
         vals.append(order)
         m.me = self.me.SurfaceNormalsObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
-
 
     def to_file(self, str filetype, str path):
         self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())               
