@@ -69,6 +69,11 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple& Append(const HTuple&) except +raise_py_error
         void Clear()
 
+cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
+    cdef cppclass HSurfaceModel:
+        #constructors
+        HSurfaceModel() except +raise_py_error
+        HSurfaceModel(const char* FileName) 
 
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:
@@ -89,8 +94,8 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         HTuple GetObjectModel3dParams(const HTuple& GenParamName) except +raise_py_error
         HObjectModel3D FitPrimitivesObjectModel3d(const HTuple& GenParamName, const HTuple& GenParamValue) const;
         HObjectModel3D SurfaceNormalsObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue) const;
-        HObjectModel3D SmoothObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue) const;
-        #HSurfaceModel CreateSurfaceModel(double RelSamplingDistance, const char* GenParamName, const char* GenParamValue) const;
+        HObjectModel3D SmoothObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error;
+        HSurfaceModel CreateSurfaceModel(double RelSamplingDistance, const char* GenParamName, const char* GenParamValue) const;
         void DistanceObjectModel3d(const HObjectModel3D& ObjectModel3DTo, const HPose& Pose, double MaxDistance, const char* GenParamName, const char* GenParamValue) const;
         HObjectModel3D SampleObjectModel3d(const char* Method, double SampleDistance, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
         

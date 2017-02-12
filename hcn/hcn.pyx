@@ -45,6 +45,12 @@ cdef class HTuple:
             raise RuntimeError("Argument not supported", ar)
 
     @staticmethod
+    def from_list(arg):
+        pyt = HTuple()
+        pyt.me = list2tuple(arg)
+        return pyt
+
+    @staticmethod
     def from_array_double(cnp.ndarray[cnp.double_t, ndim=1, mode="c"] arg):
         cdef cpp.HTuple t = cpp.HTuple(<double*>&arg[0], <int> arg.shape[0])
         pyt = HTuple()
@@ -160,6 +166,32 @@ cdef class HTuple:
         return self.me.Length()
 
 
+cdef _append_double(cpp.HTuple tup, double val):
+    tup.Append(cpp.HTuple(val))
+
+
+cdef _append_int(cpp.HTuple tup, long val):
+    tup.Append(cpp.HTuple(val))
+
+
+cdef _append_bytes(cpp.HTuple tup, bytes val):
+    tup.Append(cpp.HTuple(val))
+
+
+cdef cpp.HTuple list2tuple(arg):
+    cdef cpp.HTuple tup
+    for i in arg:
+        if isinstance(i, float):
+            _append_double(tup, i)
+        elif isinstance(i, int):
+            _append_int(tup, i)
+        elif isinstance(i, str):
+            _append_bytes(tup, i.encode())
+        elif isinstance(i, bytes):
+            _append_bytes(tup, i)
+    return tup
+
+
 cdef _ht2ar(cpp.HTuple tup):
     """
     cpp.HTuple to numpy array double
@@ -244,9 +276,23 @@ cdef class Model3D:
         m.me = self.me.ConvexHullObjectModel3d()
         return m
 
-    def sample(self, double dist, str method="fast"):
+    def sampled(self, double dist, str method="fast"):
+        """
+        Return a sampled copy of point cloud
+        """
         m = Model3D()
         m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
+        return m
+
+    def smoothed(self, str method="mls", int knn=60, int order=2):
+        m = Model3D()
+        names = []
+        vals = []
+        names.append(b"mls_kNN")
+        vals.append(knn)
+        names.append(b"mls_order")
+        vals.append(order)
+        m.me = self.me.SmoothObjectModel3d(method.encode(), list2tuple(names), list2tuple(vals))
         return m
 
     def to_file(self, str filetype, str path):

@@ -87,9 +87,15 @@ class TestsModel3D(unittest.TestCase):
 
     def test_sample(self):
         m = self._get_simple_model()
-        print("F", m.to_array())
-        new = m.sample(2)
+        new = m.sampled(2)
         self.assertEqual(len(new.to_array()), 2)
+
+    def test_smooth(self):
+        m = self._get_simple_model()
+        new = m.smoothed(knn=200)
+        print("NEW", new.to_array())
+        #self.assertEqual(len(new.to_array()), 2)
+
 
     def test_exception(self):
         m = self._get_simple_model()
@@ -97,7 +103,7 @@ class TestsModel3D(unittest.TestCase):
             m.to_file("obj", "/t.obj")
 
     def _get_simple_model(self):
-        ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0]], dtype=np.double)
+        ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0.1], [3, 0, -0.1]], dtype=np.double)
         return hcn.Model3D.from_array(ar)
     
     def test_plane(self):
