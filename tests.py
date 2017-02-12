@@ -93,9 +93,7 @@ class TestsModel3D(unittest.TestCase):
     def test_smooth(self):
         m = self._get_simple_model()
         new = m.smoothed(knn=200)
-        print("NEW", new.to_array())
         #self.assertEqual(len(new.to_array()), 2)
-
 
     def test_exception(self):
         m = self._get_simple_model()
@@ -111,6 +109,12 @@ class TestsModel3D(unittest.TestCase):
         t.pos = m3d.Vector(1, 2, 3)
         p = hcn.Plane(t, 1, 2)
         #print("RES", p.to_array())
+
+    def test_normals(self):
+        m = hcn.Model3D.from_file("simple.obj", "m")
+        print("F", m.normals_to_array())
+        m.compute_normals(60, 2)
+        print("E", m.normals_to_array())
 
 
 

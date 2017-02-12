@@ -284,7 +284,7 @@ cdef class Model3D:
         m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
         return m
 
-    def smoothed(self, str method="mls", int knn=60, int order=2):
+    def smoothed(self, int knn=60, int order=2):
         m = Model3D()
         names = []
         vals = []
@@ -292,8 +292,23 @@ cdef class Model3D:
         vals.append(knn)
         names.append(b"mls_order")
         vals.append(order)
-        m.me = self.me.SmoothObjectModel3d(method.encode(), list2tuple(names), list2tuple(vals))
+        m.me = self.me.SmoothObjectModel3d(b"mls", list2tuple(names), list2tuple(vals))
         return m
+
+    def create_surface_mode(self, dist):
+        pass
+
+    def compute_normals(self, int knn, int order):
+        m = Model3D()
+        names = []
+        vals = []
+        names.append(b"mls_kNN")
+        vals.append(knn)
+        names.append(b"mls_order")
+        vals.append(order)
+        m.me = self.me.SurfaceNormalsObjectModel3d(b"mls", list2tuple(names), list2tuple(vals))
+        return m
+
 
     def to_file(self, str filetype, str path):
         self.me.WriteObjectModel3d(cpp.HString(filetype.encode()), cpp.HString(path.encode()), cpp.HTuple(), cpp.HTuple())               
