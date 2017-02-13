@@ -123,12 +123,25 @@ class TestsModel3D(unittest.TestCase):
     def _get_simple_model(self):
         ar = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0.1], [3, 0, -0.1]], dtype=np.double)
         return hcn.Model3D.from_array(ar)
+
+    def test_box(self):
+        t = m3d.Transform()
+        t.pos = m3d.Vector(1, 2, 3)
+        p = hcn.Box(t, 1, 2, 0.5)
+        n = p.sampled(0.01)
+        #embed()
     
     def test_plane(self):
         t = m3d.Transform()
         t.pos = m3d.Vector(1, 2, 3)
         p = hcn.Plane(t, 1, 2)
+        #n = p.sampled(0.1)
+        #embed()
         #print("RES", p.to_array())
+
+    def test_sphere(self):
+        s = hcn.Sphere(1, 2, 3, 2)
+        n = s.sampled(0.1)
 
     def test_normals(self):
         m = hcn.Model3D.from_file("simple.obj", "m")

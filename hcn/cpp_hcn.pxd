@@ -83,6 +83,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status) except +raise_py_error
         void GenPlaneObjectModel3d(const HPose& Pose, const HTuple& XExtent, const HTuple& YExtent) except +raise_py_error
         void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius) except +raise_py_error
+        void GenBoxObjectModel3d(const HPose& Pose, double LengthX, double LengthY, double LengthZ) except +raise_py_error
 
         #write
         void WriteObjectModel3d(const HString& FileType, const HString& FileName, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error

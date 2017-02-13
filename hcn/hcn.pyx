@@ -349,7 +349,19 @@ cdef class Plane(Model3D):
         Model3D.__init__(self)
         cdef cpp.HPose pose = transform_to_hpose(trans)
         self.me.GenPlaneObjectModel3d(pose, cpp.HTuple(), cpp.HTuple())
-        #self.sample(0.2)
 
+
+cdef class Sphere(Model3D):
+    def __init__(self, double x, double y , double z, double radius):
+        Model3D.__init__(self)
+        self.me.GenSphereObjectModel3dCenter(x, y, z, radius)
+
+
+cdef class Box(Model3D):
+    def __init__(self, trans, double x, double y, double z):
+        Model3D.__init__(self)
+        cdef cpp.HPose pose = transform_to_hpose(trans)
+        self.me.GenBoxObjectModel3d(pose, x, y, z)
+        #self.sample(0.2)
 
 
