@@ -304,6 +304,9 @@ cdef class Model3D:
         return s
 
     def compute_normals(self, int knn, int order):
+        """
+        Compute normals
+        """
         m = Model3D()
         names = []
         vals = []
@@ -345,10 +348,10 @@ cdef class Model3D:
 
 
 cdef class Plane(Model3D):
-    def __init__(self, trans, xext, yext):
+    def __init__(self, trans, double xext, double yext):
         Model3D.__init__(self)
         cdef cpp.HPose pose = transform_to_hpose(trans)
-        self.me.GenPlaneObjectModel3d(pose, cpp.HTuple(), cpp.HTuple())
+        self.me.GenPlaneObjectModel3d(pose, xext, yext)
 
 
 cdef class Sphere(Model3D):
@@ -363,5 +366,7 @@ cdef class Box(Model3D):
         cdef cpp.HPose pose = transform_to_hpose(trans)
         self.me.GenBoxObjectModel3d(pose, x, y, z)
         #self.sample(0.2)
+
+
 
 

@@ -13,8 +13,8 @@ setup(
     ext_modules=cythonize([
         Extension(
             name="hcn.hcn",
-            sources=["hcn/hcn.pyx"],
-            include_dirs=["/opt/halcon/include/halconcpp/", "/opt/halcon/include/"],
+            sources=["hcn/hcn.pyx", "hcn/cy_handler.cpp"],
+            include_dirs=["/opt/halcon/include/halconcpp/", "/opt/halcon/include/", "."],
             libraries=["halconcpp"],
             library_dirs=["/opt/halcon/lib/x64-linux"],
             language="c++")

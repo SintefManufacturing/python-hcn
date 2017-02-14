@@ -134,9 +134,9 @@ class TestsModel3D(unittest.TestCase):
     def test_plane(self):
         t = m3d.Transform()
         t.pos = m3d.Vector(1, 2, 3)
-        p = hcn.Plane(t, 1, 2)
+        p = hcn.Plane(t, 1, 1)
         #n = p.sampled(0.1)
-        #embed()
+        embed()
         #print("RES", p.to_array())
 
     def test_sphere(self):
