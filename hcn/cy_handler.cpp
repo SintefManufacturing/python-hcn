@@ -9,9 +9,9 @@ void raise_py_error()
 {
   try {
     throw;
-  } catch (HalconCpp::HException& e) {
+  } 
+  catch (HalconCpp::HException& e) {
     HalconCpp::HString msg = e.ErrorMessage();
-    //std::cout << "ERROR" << msg.Text() << std::endl;
     PyErr_SetString(PyExc_RuntimeError, msg.Text());
   }
 }

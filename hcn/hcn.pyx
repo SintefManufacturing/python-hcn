@@ -348,10 +348,12 @@ cdef class Model3D:
 
 
 cdef class Plane(Model3D):
-    def __init__(self, trans, double xext, double yext):
+    def __init__(self, trans, xext_vect, yext_vect):
         Model3D.__init__(self)
         cdef cpp.HPose pose = transform_to_hpose(trans)
-        self.me.GenPlaneObjectModel3d(pose, xext, yext)
+        xext_vect = list(xext_vect)
+        yext_vect = list(yext_vect)
+        self.me.GenPlaneObjectModel3d(pose, _list2tuple(xext_vect), _list2tuple(yext_vect))
 
 
 cdef class Sphere(Model3D):

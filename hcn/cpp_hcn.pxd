@@ -2,12 +2,10 @@ from libc.stdint cimport uint32_t, uint16_t
 from libcpp cimport string
 from libcpp cimport bool
 
-#cdef inline int raise_py_error() except *:
-    # unfortunately no way to get details from halcon exceptions here....
-    #raise RuntimeError("Halcon Error")
 
 cdef extern from "hcn/cy_handler.h":
   cdef void raise_py_error()
+
 
 cdef extern from "HalconCpp.h" namespace "HalconCpp":
 
@@ -83,7 +81,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         HObjectModel3D() except +raise_py_error
         HObjectModel3D(const HTuple& X, const HTuple& Y, const HTuple& Z) except +raise_py_error
         HObjectModel3D(const HString& FileName, const HTuple& Scale, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Status) except +raise_py_error
-        void GenPlaneObjectModel3d(const HPose& Pose, double XExtent, double YExtent) except +raise_py_error
+        void GenPlaneObjectModel3d(const HPose& Pose, const HTuple& XExtent, const HTuple& YExtent) except +raise_py_error
         void GenSphereObjectModel3dCenter(double X, double Y, double Z, double Radius) except +raise_py_error
         void GenBoxObjectModel3d(const HPose& Pose, double LengthX, double LengthY, double LengthZ) except +raise_py_error
 

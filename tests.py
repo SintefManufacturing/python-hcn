@@ -8,6 +8,13 @@ from IPython import embed
 
 import math3d as m3d
 
+try:
+    import vtk_visualizer as vv
+except:
+    pass
+
+
+
 class TestTuple(unittest.TestCase):
 
     def test_tuple_double(self):
@@ -133,11 +140,9 @@ class TestsModel3D(unittest.TestCase):
     
     def test_plane(self):
         t = m3d.Transform()
-        t.pos = m3d.Vector(1, 2, 3)
-        p = hcn.Plane(t, 1, 1)
-        #n = p.sampled(0.1)
-        embed()
-        #print("RES", p.to_array())
+        t.pos = m3d.Vector(0, 0, 2)
+        p = hcn.Plane(t, [1, 0, 0], [0, 1, 0])
+        n = p.sampled(0.1)
 
     def test_sphere(self):
         s = hcn.Sphere(1, 2, 3, 2)
@@ -158,4 +163,4 @@ class TestsModel3D(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=3)
