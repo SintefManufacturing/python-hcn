@@ -23,6 +23,17 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple ConvertToTuple()
         HPose(double TransX, double TransY, double TransZ, double RotX, double RotY, double RotZ, const char* OrderOfTransform, const char* OrderOfRotation, const char* ViewOfTransform) except +raise_py_error
 
+    cdef cppclass HPoseArray:
+        HPoseArray() except +raise_py_error
+        long Length()
+        HPose operator[](int)
+
+    cdef cppclass HSurfaceMatchingResult:
+        HSurfaceMatchingResult() except +raise_py_error
+
+    cdef cppclass HSurfaceMatchingResultArray:
+        HSurfaceMatchingResultArray() except +raise_py_error
+
     cdef cppclass HString:
         HString() except +raise_py_error
         HString(const char*) except +raise_py_error
@@ -74,6 +85,7 @@ cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
         #constructors
         HSurfaceModel() except +raise_py_error
         HSurfaceModel(const char* FileName) 
+        HPose FindSurfaceModel(const HObjectModel3D& ObjectModel3D, double RelSamplingDistance, double KeyPointFraction, double MinScore, const char* ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResult* SurfaceMatchingResultID) except +raise_py_error
 
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
     cdef cppclass HObjectModel3D:

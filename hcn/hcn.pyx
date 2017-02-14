@@ -216,6 +216,18 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
+    def find_surface_model(self, Model3D model, double rel_sample_dist, double key_point_fraction, double min_score):
+        cdef cpp.HString reHandle
+        names = []
+        vals = []
+        cdef cpp.HTuple score 
+        cdef cpp.HSurfaceMatchingResult sres
+
+        cdef cpp.HPose pose = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, min_score, "false" , _list2tuple(names), _list2tuple(vals), &score, &sres)
+        tup = HTuple()
+        tup.me = pose.ConvertToTuple()
+        return tup
+
 
 cdef class Model3D:
 
@@ -275,7 +287,7 @@ cdef class Model3D:
         m.me = self.me.ConvexHullObjectModel3d()
         return m
 
-    def sampled(self, double dist, str method="fast"):
+    def sampled(self, str method="fast", double dist=0.01):
         """
         Return a sampled copy of point cloud
         """
@@ -344,8 +356,6 @@ cdef class Model3D:
 
     def select_z(self, min_val, max_val):
         return self.select_points("point_coord_z", min_val, max_val)
-
-
 
 cdef class Plane(Model3D):
     def __init__(self, trans, xext_vect, yext_vect):

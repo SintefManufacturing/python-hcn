@@ -114,7 +114,7 @@ class TestsModel3D(unittest.TestCase):
 
     def test_sample(self):
         m = self._get_simple_model()
-        new = m.sampled(2)
+        new = m.sampled("fast", 2)
         self.assertEqual(len(new.to_array()), 2)
 
     def test_smooth(self):
@@ -135,18 +135,18 @@ class TestsModel3D(unittest.TestCase):
         t = m3d.Transform()
         t.pos = m3d.Vector(1, 2, 3)
         p = hcn.Box(t, 1, 2, 0.5)
-        n = p.sampled(0.01)
+        n = p.sampled("fast", 0.01)
         #embed()
     
     def test_plane(self):
         t = m3d.Transform()
         t.pos = m3d.Vector(0, 0, 2)
         p = hcn.Plane(t, [1, 0, 0], [0, 1, 0])
-        n = p.sampled(0.1)
+        n = p.sampled("fast", 0.1)
 
     def test_sphere(self):
         s = hcn.Sphere(1, 2, 3, 2)
-        n = s.sampled(0.1)
+        n = s.sampled("fast", 0.1)
 
     def test_normals(self):
         m = hcn.Model3D.from_file("simple.obj", "m")
