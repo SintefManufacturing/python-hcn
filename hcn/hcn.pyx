@@ -216,17 +216,20 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
-    def find_surface_model(self, Model3D model, double rel_sample_dist, double key_point_fraction, double min_score):
+    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0):
         cdef cpp.HString reHandle
         names = []
+        names.append("num_matches")
         vals = []
-        cdef cpp.HTuple score 
-        cdef cpp.HSurfaceMatchingResult sres
+        vals.append(16)
+        score = HTuple()
+        cdef cpp.HSurfaceMatchingResultArray sres
 
-        cdef cpp.HPose pose = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, min_score, "false" , _list2tuple(names), _list2tuple(vals), &score, &sres)
+        cdef cpp.HPoseArray poses = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(names), _list2tuple(vals), &score.me, &sres)
+        #cdef cpp.HPose pose = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, min_score, b"false" , _list2tuple(names), _list2tuple(vals), &score, &sres)
         tup = HTuple()
-        tup.me = pose.ConvertToTuple()
-        return tup
+        tup.me = poses.ConvertToTuple()
+        return tup, score
 
 
 cdef class Model3D:
@@ -287,12 +290,22 @@ cdef class Model3D:
         m.me = self.me.ConvexHullObjectModel3d()
         return m
 
-    def sampled(self, str method="fast", double dist=0.01):
+    def sampled(self, str method="fast", double dist=0.01, max_angle_diff=None, min_num_points=None ):
         """
         Return a sampled copy of point cloud
+        args: methods and distance
+        methods: accurate, accurate_use_normals, fast, fast_compute_normals
         """
         m = Model3D()
-        m.me = self.me.SampleObjectModel3d(method.encode(), dist, cpp.HTuple(), cpp.HTuple())
+        names = []
+        vals = []
+        if max_angle_diff is not None:
+            names.append(b"max_angle_diff")
+            vals.append(max_angle_diff)
+        if min_num_points is not None:
+            names.append(b"min_num_points")
+            vals.append(min_num_points)
+        m.me = self.me.SampleObjectModel3d(method.encode(), dist, _list2tuple(names), _list2tuple(vals))
         return m
 
     def smoothed(self, int knn=60, int order=2):
