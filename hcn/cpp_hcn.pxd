@@ -18,15 +18,24 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         Hpar par
         int type
 
+    cdef cppclass HQuaternion:
+        HQuaternion() except +raise_py_error
+        HQuaternion(const HTuple&) except +raise_py_error
+        HPose QuatToPose()
+        void PoseToQuat(const HPose&) except +raise_py_error
+        HTuple ConvertToTuple()
+
     cdef cppclass HPose:
         HPose() except +raise_py_error
-        HTuple ConvertToTuple()
+        HPose(const HTuple&) except +raise_py_error
+        HTuple ConvertToTuple() except +raise_py_error
         HPose(double TransX, double TransY, double TransZ, double RotX, double RotY, double RotZ, const char* OrderOfTransform, const char* OrderOfRotation, const char* ViewOfTransform) except +raise_py_error
 
     cdef cppclass HPoseArray:
         HPoseArray() except +raise_py_error
         long Length()
-        HTuple ConvertToTuple()
+        HPose* Data()
+        HTuple ConvertToTuple() except +raise_py_error
 
     cdef cppclass HSurfaceMatchingResult:
         HSurfaceMatchingResult() except +raise_py_error
@@ -114,3 +123,4 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         HObjectModel3D SampleObjectModel3d(const char* Method, double SampleDistance, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
         
         HObjectModel3D EdgesObjectModel3d(const HTuple& MinAmplitude, const HTuple& GenParamName, const HTuple& GenParamValue) const;
+        HObjectModel3D RigidTransObjectModel3d(const HPose& Pose) except +raise_py_error

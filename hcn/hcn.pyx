@@ -183,7 +183,7 @@ cdef cpp.HTuple _list2tuple(arg):
     return tup
 
 
-cdef _ht2ar(cpp.HTuple tup):
+cdef _ht2ar(cpp.HTuple& tup):
     """
     cpp.HTuple to numpy array double
     """
@@ -202,11 +202,55 @@ cdef cpp.HTuple _ar2ht(cnp.ndarray ar):
     return t.me
 
 
+cdef class HPose:
+
+    cdef cpp.HPose me
+
+    def __cinit__(self):
+        self.me = cpp.HPose()
+
+    def to_list(self):
+        tup = HTuple()
+        tup.me = self.me.ConvertToTuple()
+        return tup.to_list()
+
+    @staticmethod
+    def from_transform(self, trans):
+        p = HPose()
+        p.me = transform_to_hpose(trans)
+        return p
+
+
 cdef cpp.HPose transform_to_hpose(trans):
     cdef int rx, ry, rz 
     rx, ry, rz = trans.orient.to_euler("xyz")
     cdef cpp.HPose pose = cpp.HPose(trans.pos.x, trans.pos.y, trans.pos.z, rx, ry, rz, "Rp+T", "gba", "point")
     return pose
+
+
+cdef _pose2quat(cpp.HPose& pose):
+    cdef cpp.HQuaternion q 
+    q.PoseToQuat(pose)
+    tup = HTuple()
+    tup.me = q.ConvertToTuple()
+    return tup.to_list()
+
+
+cdef _hposear2list(cpp.HPoseArray& ar):
+    tup = HTuple()
+    tup.me = ar.ConvertToTuple()
+    cdef int nb = tup.length() / 7
+    print("NB", nb)
+    poses = []
+    of = 0
+    for _ in range(nb):
+        args = [tup[i] for i in range(of, of + 7)]
+        p = HPose()
+        p.me = cpp.HPose(_list2tuple(args))
+        #p.me = cpp.HPose(tup[of],tup[of + 1], tup[of + 2], tup[of + 3], tup[of + 4], tup[of + 5], tup[of + 6])
+        poses.append(p)
+        of += 7
+    return poses
 
 
 cdef class Surface:
@@ -225,11 +269,13 @@ cdef class Surface:
         score = HTuple()
         cdef cpp.HSurfaceMatchingResultArray sres
 
-        cdef cpp.HPoseArray poses = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(names), _list2tuple(vals), &score.me, &sres)
-        #cdef cpp.HPose pose = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, min_score, b"false" , _list2tuple(names), _list2tuple(vals), &score, &sres)
-        tup = HTuple()
-        tup.me = poses.ConvertToTuple()
-        return tup, score
+        cdef cpp.HPoseArray pose_array = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(names), _list2tuple(vals), &score.me, &sres)
+        print("FIND", score.to_list(), pose_array.Length())
+        poses = _hposear2list(pose_array)
+        #print("length poses: ", pose.Length())
+        #cdef cpp.HPose p = <cpp.HPose> poses.Data()[0]
+        #tup.me = p.ConvertToTuple()
+        return poses, score.to_list()
 
 
 cdef class Model3D:
@@ -369,6 +415,11 @@ cdef class Model3D:
 
     def select_z(self, min_val, max_val):
         return self.select_points("point_coord_z", min_val, max_val)
+
+    def transformed(self, HPose pose):
+        m = Model3D()
+        m.me = self.me.RigidTransObjectModel3d(pose.me)
+
 
 cdef class Plane(Model3D):
     def __init__(self, trans, xext_vect, yext_vect):
