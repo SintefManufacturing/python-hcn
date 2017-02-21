@@ -89,6 +89,7 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple& Append(const HTuple&) except +raise_py_error
         void Clear()
 
+
 cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
     cdef cppclass HSurfaceModel:
         #constructors

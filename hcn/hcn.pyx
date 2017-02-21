@@ -237,19 +237,11 @@ cdef _pose2quat(cpp.HPose& pose):
 
 
 cdef _hposear2list(cpp.HPoseArray& ar):
-    tup = HTuple()
-    tup.me = ar.ConvertToTuple()
-    cdef int nb = tup.length() / 7
-    print("NB", nb)
     poses = []
-    of = 0
-    for _ in range(nb):
-        args = [tup[i] for i in range(of, of + 7)]
+    for i in range(ar.Length()):
         p = HPose()
-        p.me = cpp.HPose(_list2tuple(args))
-        #p.me = cpp.HPose(tup[of],tup[of + 1], tup[of + 2], tup[of + 3], tup[of + 4], tup[of + 5], tup[of + 6])
+        p.me = <cpp.HPose> ar.Data()[i]
         poses.append(p)
-        of += 7
     return poses
 
 
@@ -260,21 +252,17 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
-    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0):
+    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0, num_matches=4):
         cdef cpp.HString reHandle
         names = []
         names.append("num_matches")
         vals = []
-        vals.append(16)
+        vals.append(num_matches)
         score = HTuple()
         cdef cpp.HSurfaceMatchingResultArray sres
 
         cdef cpp.HPoseArray pose_array = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(names), _list2tuple(vals), &score.me, &sres)
-        print("FIND", score.to_list(), pose_array.Length())
         poses = _hposear2list(pose_array)
-        #print("length poses: ", pose.Length())
-        #cdef cpp.HPose p = <cpp.HPose> poses.Data()[0]
-        #tup.me = p.ConvertToTuple()
         return poses, score.to_list()
 
 
@@ -419,6 +407,7 @@ cdef class Model3D:
     def transformed(self, HPose pose):
         m = Model3D()
         m.me = self.me.RigidTransObjectModel3d(pose.me)
+        return m
 
 
 cdef class Plane(Model3D):
