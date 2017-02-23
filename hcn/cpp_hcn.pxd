@@ -96,9 +96,11 @@ cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
         HSurfaceModel() except +raise_py_error
         HSurfaceModel(const char* FileName) 
         HPoseArray FindSurfaceModel(const HObjectModel3D&, double RelSamplingDistance, double KeyPointFraction, const HTuple& MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResultArray*)  except +raise_py_error
-        HPose FindSurfaceModel(const HObjectModel3D& ObjectModel3D, double RelSamplingDistance, double KeyPointFraction, double MinScore, const char* ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResult*) except +raise_py_error
+        HPose RefineSurfaceModelPose(const HObjectModel3D& ObjectModel3D, const HPose& InitialPose, double MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResult* SurfaceMatchingResultID) const;
+
 
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
+
     cdef cppclass HObjectModel3D:
         #constructors
         HObjectModel3D() except +raise_py_error
@@ -125,3 +127,15 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         
         HObjectModel3D EdgesObjectModel3d(const HTuple& MinAmplitude, const HTuple& GenParamName, const HTuple& GenParamValue) const;
         HObjectModel3D RigidTransObjectModel3d(const HPose& Pose) except +raise_py_error
+        @staticmethod
+        HObjectModel3D UnionObjectModel3d(const HObjectModel3DArray& ObjectModels3D, const HString& Method)
+
+
+    cdef cppclass HObjectModel3DArray:
+        HObjectModel3DArray() except +raise_py_error
+        long Length()
+        HObjectModel3D* Data()
+        HTuple ConvertToTuple() except +raise_py_error
+        void SetFromTuple(const HTuple& concatenated) except +raise_py_error
+
+

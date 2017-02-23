@@ -1,22 +1,20 @@
 import unittest
+import math
 
 import numpy as np
 
 import hcn
 
-from IPython import embed
-
 import math3d as m3d
 
+from IPython import embed
 try:
     import vtk_visualizer as vv
 except:
     pass
 
 
-
-class TestTuple(unittest.TestCase):
-
+class TestsHTuple(unittest.TestCase):
     def test_tuple_double(self):
         val = 0.199
         d = hcn.HTuple(val)
@@ -52,7 +50,7 @@ class TestTuple(unittest.TestCase):
         d = hcn.HTuple(val)
         d.append(3.4)
         self.assertEqual(d.length(), 2)
- 
+
     def test_array_double(self):
         a = np.array([1.1, 2.1, 3.1, 4.1, 5.1], dtype=np.double)
         t = hcn.HTuple.from_array(a)
@@ -77,7 +75,19 @@ class TestTuple(unittest.TestCase):
             print(tup[5])
 
 
-   
+class TestsHPose(unittest.TestCase):
+    def test_empty(self):
+        p = hcn.HPose()
+
+    def test_transform(self):
+        p = hcn.HPose()
+        t = m3d.Transform()
+        t.pos = m3d.Vector(2, 3, 1)
+        t.orient.rotate_zb(math.pi / 2)
+        p = hcn.HPose(*t.pose_vector)
+        t2 = m3d.Transform(p.to_list()[:-1])
+        self.assertEqual(t, t2)
+
 
 class TestsModel3D(unittest.TestCase):
     def test_read_model(self):
@@ -106,7 +116,7 @@ class TestsModel3D(unittest.TestCase):
         m = self._get_simple_model()
         m = m.select_x(0, 1)
         ar = m.to_array()
-        self.assertTrue(max(ar[:,0]) <= 1)
+        self.assertTrue(max(ar[:, 0]) <= 1)
 
     def test_create_surface(self):
         m = self._get_simple_model()
@@ -132,16 +142,14 @@ class TestsModel3D(unittest.TestCase):
         return hcn.Model3D.from_array(ar)
 
     def test_box(self):
-        t = m3d.Transform()
-        t.pos = m3d.Vector(1, 2, 3)
-        p = hcn.Box(t, 1, 2, 0.5)
-        n = p.sampled("fast", 0.01)
+        p = hcn.HPose(1, 2, 3)
+        b = hcn.Box(p, 1, 2, 0.5)
+        n = b.sampled("fast", 0.01)
         #embed()
-    
+
     def test_plane(self):
-        t = m3d.Transform()
-        t.pos = m3d.Vector(0, 0, 2)
-        p = hcn.Plane(t, [1, 0, 0], [0, 1, 0])
+        pose = hcn.HPose(0, 0, 2)
+        p = hcn.Plane(pose, [1, 0, 0], [0, 1, 0])
         n = p.sampled("fast", 0.1)
 
     def test_sphere(self):
@@ -155,11 +163,22 @@ class TestsModel3D(unittest.TestCase):
         #print("E", m.normals_to_array())
         # FIXME
 
-
-
-
-
-
+    def test_localize(self):
+        box = hcn.Box(hcn.HPose(0.1, 0.2, 0.3), 0.1, 0.2, 0.3)
+        # make a scene and sample it
+        trans = m3d.Transform((1, 0, 0, 0, 0, math.pi / 2))
+        new_box = box.transformed(hcn.HPose(trans))
+        sphere = hcn.Sphere(-0.3, 0, 0, 0.2)
+        scene = new_box
+        #scene = Model3D.union([new_box, sphere])
+        #scene.compute_normals(60, 2)
+        scene = scene.sampled("fast_compute_normals", 0.01)
+        # sample our box to something different
+        box = box.sampled("fast_compute_normals", 0.005)
+        surf = box.create_surface_model(0.005)
+        poses, score = surf.find_surface_model(scene, 0.03, 0.5, 0.1)
+        self.assertEqual(len(poses), 1)
+        embed()
 
 
 if __name__ == "__main__":

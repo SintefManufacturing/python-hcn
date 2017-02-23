@@ -8,6 +8,12 @@ from cython.view cimport array as cvarray
 
 from enum import Enum
 
+MATH3D = True
+try:
+    import math3d as m3d
+except ImportError:
+    MATH3D = False
+
 
 class TupleType(Enum):
     Int = 1
@@ -82,6 +88,9 @@ cdef class HTuple:
         cdef const char* s = py_bytes
         t.me.assign(s)
         return t
+
+    def __repr__(self):
+        return "HTuple({})".format(self.to_list())
 
     def type(self):
         return TupleType(self.me.Type())
@@ -203,25 +212,46 @@ cdef cpp.HTuple _ar2ht(cnp.ndarray ar):
 
 
 cdef class HPose:
+    """
+    A HPose represent a position and an orientation in Halcon.
+    Takes either
+    * nothing
+    * a pos vector
+    * a pos vector + axis angle (6 tall)
+    * a pos vector + euler rotation + encoding (see Halcon doc)
+    """
 
     cdef cpp.HPose me
 
-    def __cinit__(self):
-        self.me = cpp.HPose()
+    def __cinit__(self, *args):
+        if len(args) == 0:
+            self.me = cpp.HPose()
+        elif len(args) == 1:
+            # suppose this is math3d transform
+            self.me = _trans2hpose(args[0])
+        elif len(args) == 3:
+            # we suppose this is a vector
+            self.me = cpp.HPose(<double> args[0], <double> args[1], <double> args[2], 0, 0, 0, "Rp+T", "gba", "point")
+        elif len(args) == 6:
+            # we suppose this is a vector with axis angle, from ur for example
+            self.me = cpp.HPose(<double> args[0], <double> args[1], <double> args[2], <double> args[3], <double> args[4], <double> args[5], "Rp+T", "rodriguez", "point")
+        elif len(args) == 7:
+            # this is an Halcon encoded rotation see documentation
+            self.me = cpp.HPose(_list2tuple(args))
+        else:
+            raise ValueError("HPose argument not understood", args)
+
 
     def to_list(self):
         tup = HTuple()
         tup.me = self.me.ConvertToTuple()
         return tup.to_list()
 
-    @staticmethod
-    def from_transform(self, trans):
-        p = HPose()
-        p.me = transform_to_hpose(trans)
-        return p
+    def __repr__(self):
+        return "HPose({})".format(self.to_list())
 
 
-cdef cpp.HPose transform_to_hpose(trans):
+cdef cpp.HPose _trans2hpose(trans):
     cdef int rx, ry, rz 
     rx, ry, rz = trans.orient.to_euler("xyz")
     cdef cpp.HPose pose = cpp.HPose(trans.pos.x, trans.pos.y, trans.pos.z, rx, ry, rz, "Rp+T", "gba", "point")
@@ -252,7 +282,7 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
-    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0, num_matches=4):
+    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0.5, num_matches=4):
         cdef cpp.HString reHandle
         names = []
         names.append("num_matches")
@@ -265,6 +295,17 @@ cdef class Surface:
         poses = _hposear2list(pose_array)
         return poses, score.to_list()
 
+    def refine_pose(self, Model3D model, HPose pose, double min_score):
+        new_pose = HPose()
+        cdef cpp.HString handle
+        cdef cpp.HSurfaceMatchingResult sres
+
+        names = []
+        vals = []
+        score = HTuple()
+        new_pose.me = self.me.RefineSurfaceModelPose(model.me, pose.me, min_score, cpp.HString("false"),  _list2tuple(names), _list2tuple(vals), &score.me, &sres)
+        return new_pose, score.to_list()
+   
 
 cdef class Model3D:
 
@@ -280,7 +321,6 @@ cdef class Model3D:
         cdef cpp.HTuple status;
         model.me = cpp.HObjectModel3D(cpp.HString(path.encode()), cpp.HTuple(bscale), cpp.HTuple(), cpp.HTuple(), &status)
         return model
-        #print("STATUS", status.ToString())
     
     @staticmethod
     def from_array(ar):
@@ -318,6 +358,12 @@ cdef class Model3D:
         nz = _ht2ar(z)
         nz.shape = -1, 1
         return np.hstack((nx, ny, nz))
+
+    def points_and_normals_to_array(self):
+        pts = self.to_array()
+        nls = self.normals_to_array()
+        c = np.hstack((pts, nls))
+        return c
 
     def get_convex_hull(self):
         m = Model3D()
@@ -362,7 +408,7 @@ cdef class Model3D:
         s.me = self.me.CreateSurfaceModel(dist, _list2tuple(names), _list2tuple(vals))
         return s
 
-    def compute_normals(self, int knn, int order):
+    def compute_normals(self, int knn, int order, force_inwards=False):
         """
         Compute normals
         """
@@ -373,6 +419,10 @@ cdef class Model3D:
         vals.append(knn)
         names.append(b"mls_order")
         vals.append(order)
+        if force_inwards:
+            names.append(b"mls_force_inwards")
+            vals.append("true")
+
         m.me = self.me.SurfaceNormalsObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
 
@@ -408,15 +458,25 @@ cdef class Model3D:
         m = Model3D()
         m.me = self.me.RigidTransObjectModel3d(pose.me)
         return m
+    
+    @staticmethod
+    def union(models):
+        cdef cpp.HObjectModel3DArray ar
+        ar.SetFromTuple(_list2tuple([m.me for m in models]))
+        m = Model3D()
+        print(type(m))
+        print(type(m.me))
+        #m.me = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
+        cdef cpp.HObjectModel3D obj = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
+        return m
 
 
 cdef class Plane(Model3D):
-    def __init__(self, trans, xext_vect, yext_vect):
+    def __init__(self, HPose pose, xext_vect, yext_vect):
         Model3D.__init__(self)
-        cdef cpp.HPose pose = transform_to_hpose(trans)
         xext_vect = list(xext_vect)
         yext_vect = list(yext_vect)
-        self.me.GenPlaneObjectModel3d(pose, _list2tuple(xext_vect), _list2tuple(yext_vect))
+        self.me.GenPlaneObjectModel3d(pose.me, _list2tuple(xext_vect), _list2tuple(yext_vect))
 
 
 cdef class Sphere(Model3D):
@@ -426,11 +486,9 @@ cdef class Sphere(Model3D):
 
 
 cdef class Box(Model3D):
-    def __init__(self, trans, double x, double y, double z):
+    def __init__(self, HPose pose, double x, double y, double z):
         Model3D.__init__(self)
-        cdef cpp.HPose pose = transform_to_hpose(trans)
-        self.me.GenBoxObjectModel3d(pose, x, y, z)
-        #self.sample(0.2)
+        self.me.GenBoxObjectModel3d(pose.me, x, y, z)
 
 
 
