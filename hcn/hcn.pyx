@@ -189,6 +189,8 @@ cdef cpp.HTuple _list2tuple(arg):
             _append_bytes(tup, i.encode())
         elif isinstance(i, bytes):
             _append_bytes(tup, i)
+        else:
+            raise RuntimeError("arg type not supported")
     return tup
 
 
@@ -241,7 +243,6 @@ cdef class HPose:
         else:
             raise ValueError("HPose argument not understood", args)
 
-
     def to_list(self):
         tup = HTuple()
         tup.me = self.me.ConvertToTuple()
@@ -249,6 +250,14 @@ cdef class HPose:
 
     def __repr__(self):
         return "HPose({})".format(self.to_list())
+
+    def to_transform(self):
+        """
+        return a transform.
+        # FIXME: check hos rotation is defined!!!!
+        """
+        return m3d.Transform(self.to_list()[:-1])
+
 
 
 cdef cpp.HPose _trans2hpose(trans):
@@ -347,7 +356,7 @@ cdef class Model3D:
         nz.shape = -1, 1
         return np.hstack((nx, ny, nz))
 
-    def normals_to_array(self):
+    def normals_to_array(self, divider=1):
         cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_x"))
         cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_y"))
         cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_z"))
@@ -357,11 +366,14 @@ cdef class Model3D:
         ny.shape = -1, 1
         nz = _ht2ar(z)
         nz.shape = -1, 1
-        return np.hstack((nx, ny, nz))
+        if divider != 1:
+            return np.hstack((nx, ny, nz)) / divider
+        else:
+            return np.hstack((nx, ny, nz))
 
-    def points_and_normals_to_array(self):
+    def points_and_normals_to_array(self, divider=1):
         pts = self.to_array()
-        nls = self.normals_to_array()
+        nls = self.normals_to_array(divider)
         c = np.hstack((pts, nls))
         return c
 
@@ -460,14 +472,19 @@ cdef class Model3D:
         return m
     
     @staticmethod
-    def union(models):
-        cdef cpp.HObjectModel3DArray ar
-        ar.SetFromTuple(_list2tuple([m.me for m in models]))
+    #def union(Model3D[] models);  # syntax not supported?
+    def union(Model3D m0, Model3D m1, Model3D m2=None):
+        cdef int nb = 2
+        if m2 is not None:
+            nb += 1
+        cdef cpp.HObjectModel3D car[10]
+        car[0] = m0.me
+        car[1] = m1.me
+        if m2 is not None:
+            car[2] = m2.me
+        cdef cpp.HObjectModel3DArray ar = cpp.HObjectModel3DArray(car, nb)
         m = Model3D()
-        print(type(m))
-        print(type(m.me))
-        #m.me = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
-        cdef cpp.HObjectModel3D obj = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
+        m.me = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
         return m
 
 

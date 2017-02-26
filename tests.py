@@ -2,12 +2,11 @@ import unittest
 import math
 
 import numpy as np
+import math3d as m3d
+from IPython import embed
 
 import hcn
 
-import math3d as m3d
-
-from IPython import embed
 try:
     import vtk_visualizer as vv
 except:
@@ -90,6 +89,7 @@ class TestsHPose(unittest.TestCase):
 
 
 class TestsModel3D(unittest.TestCase):
+
     def test_read_model(self):
         m = hcn.Model3D.from_file("simple.obj", "m")
         ar = m.to_array()
@@ -164,21 +164,27 @@ class TestsModel3D(unittest.TestCase):
         # FIXME
 
     def test_localize(self):
-        box = hcn.Box(hcn.HPose(0.1, 0.2, 0.3), 0.1, 0.2, 0.3)
+        box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
         # make a scene and sample it
-        trans = m3d.Transform((1, 0, 0, 0, 0, math.pi / 2))
+        trans = m3d.Transform((0.2, 0, 0, 0, 0, math.pi / 2))
         new_box = box.transformed(hcn.HPose(trans))
-        sphere = hcn.Sphere(-0.3, 0, 0, 0.2)
-        scene = new_box
-        #scene = Model3D.union([new_box, sphere])
+        box2 = hcn.Box(hcn.HPose(0, -0.2, -0.05), 0.3, 0.3, 0.3)
+        sphere = hcn.Sphere(0, 0, -0.05, 0.2)
+        new_box = new_box.sampled("fast_compute_normals", 0.01)
+        box2 = box2.sampled("fast_compute_normals", 0.01)
+        sphere = sphere.sampled("fast_compute_normals", 0.01)
+        scene = sphere.union(new_box, sphere, box2)
+        #scene = scene.select_z(0, 1)
         #scene.compute_normals(60, 2)
-        scene = scene.sampled("fast_compute_normals", 0.01)
+        #scene = scene.sampled("fast_compute_normals", 0.01)
         # sample our box to something different
         box = box.sampled("fast_compute_normals", 0.005)
-        surf = box.create_surface_model(0.005)
-        poses, score = surf.find_surface_model(scene, 0.03, 0.5, 0.1)
+        surf = box.create_surface_model(0.01)
+        poses, score = surf.find_surface_model(scene, 0.05, 0.1, 0.1)
+        if poses:
+            tr = box.transformed(poses[0])
         self.assertEqual(len(poses), 1)
-        embed()
+        #embed()
 
 
 if __name__ == "__main__":

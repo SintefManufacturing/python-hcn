@@ -84,6 +84,7 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void add "operator+="(double)
         void add "operator+="(int)
         void add "operator+="(HTuple)
+        void add "operator+="(HObjectModel3D)
         HTupleElement operator[](int)
         HString ToString()
         HTuple& Append(const HTuple&) except +raise_py_error
@@ -128,11 +129,12 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         HObjectModel3D EdgesObjectModel3d(const HTuple& MinAmplitude, const HTuple& GenParamName, const HTuple& GenParamValue) const;
         HObjectModel3D RigidTransObjectModel3d(const HPose& Pose) except +raise_py_error
         @staticmethod
-        HObjectModel3D UnionObjectModel3d(const HObjectModel3DArray& ObjectModels3D, const HString& Method)
+        HObjectModel3D UnionObjectModel3d(const HObjectModel3DArray& ObjectModels3D, const HString& Method) except +raise_py_error
 
 
     cdef cppclass HObjectModel3DArray:
         HObjectModel3DArray() except +raise_py_error
+        HObjectModel3DArray(HObjectModel3D* classes, long length) except +raise_py_error
         long Length()
         HObjectModel3D* Data()
         HTuple ConvertToTuple() except +raise_py_error
