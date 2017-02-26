@@ -170,20 +170,23 @@ class TestsModel3D(unittest.TestCase):
         new_box = box.transformed(hcn.HPose(trans))
         box2 = hcn.Box(hcn.HPose(0, -0.2, -0.05), 0.3, 0.3, 0.3)
         sphere = hcn.Sphere(0, 0, -0.05, 0.2)
-        new_box = new_box.sampled("fast_compute_normals", 0.01)
-        box2 = box2.sampled("fast_compute_normals", 0.01)
-        sphere = sphere.sampled("fast_compute_normals", 0.01)
+        print(1)
+        new_box = new_box.sampled("fast_compute_normals", 0.02)
+        box2 = box2.sampled("fast_compute_normals", 0.02)
+        print(2)
+        sphere = sphere.sampled("fast_compute_normals", 0.02)
         scene = sphere.union(new_box, sphere, box2)
-        #scene = scene.select_z(0, 1)
-        #scene.compute_normals(60, 2)
-        #scene = scene.sampled("fast_compute_normals", 0.01)
+        print(3)
+        #scene = scene.select_z(0, 1)  # FIXME: does not work
         # sample our box to something different
-        box = box.sampled("fast_compute_normals", 0.005)
-        surf = box.create_surface_model(0.01)
-        poses, score = surf.find_surface_model(scene, 0.05, 0.1, 0.1)
+        box = box.sampled("fast_compute_normals", 0.01)
+        print(4)
+        surf = box.create_surface_model(0.02)
+        poses, score = surf.find_surface_model(scene, 0.04, 0.1, 0.01)
+        print(5)
         if poses:
             tr = box.transformed(poses[0])
-        self.assertEqual(len(poses), 1)
+        self.assertGreater(len(poses), 1)
         #embed()
 
 
