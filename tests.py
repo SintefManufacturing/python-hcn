@@ -169,22 +169,16 @@ class TestsModel3D(unittest.TestCase):
         box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
         # make a scene and sample it
         trans = m3d.Transform((0.2, 0, 0, 0, 0, math.pi / 2))
-        new_box = box.transformed(hcn.HPose(trans))
-        box2 = hcn.Box(hcn.HPose(0, -0.2, -0.05), 0.3, 0.3, 0.3)
-        sphere = hcn.Sphere(0, 0, -0.05, 0.2)
-        new_box = new_box.sampled("fast_compute_normals", 0.02)
-        box2 = box2.sampled("fast_compute_normals", 0.02)
-        sphere = sphere.sampled("fast_compute_normals", 0.02)
-        scene = sphere.union(new_box, sphere, box2)
+        scene = box.transformed(hcn.HPose(trans))
+        scene = scene.sampled("fast_compute_normals", 0.01)
         #scene = scene.select_z(0, 1)  # FIXME: does not work
         # sample our box to something different
         box = box.sampled("fast_compute_normals", 0.01)
         surf = box.create_surface_model(0.02)
-        poses, score = surf.find_surface_model(scene, 0.04, 0.1, 0.01)
+        poses, score = surf.find_surface_model(scene, 0.001, 0.2, min_score=0, params={"num_matches":1})
         if poses:
             tr = box.transformed(poses[0])
         self.assertGreater(len(poses), 1)
-        #embed()
 
     def test_fit(self):
         box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
