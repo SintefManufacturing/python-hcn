@@ -103,7 +103,9 @@ class TestsModel3D(unittest.TestCase):
         np.testing.assert_array_equal(ar, new)
 
     def test_bounding_box(self):
+        print("A")
         m = self._get_simple_model()
+        print("B")
         m.get_bounding_box()
         #print("BOUND", m.get_bounding_box())
         #FIXME: check result
@@ -170,24 +172,24 @@ class TestsModel3D(unittest.TestCase):
         new_box = box.transformed(hcn.HPose(trans))
         box2 = hcn.Box(hcn.HPose(0, -0.2, -0.05), 0.3, 0.3, 0.3)
         sphere = hcn.Sphere(0, 0, -0.05, 0.2)
-        print(1)
         new_box = new_box.sampled("fast_compute_normals", 0.02)
         box2 = box2.sampled("fast_compute_normals", 0.02)
-        print(2)
         sphere = sphere.sampled("fast_compute_normals", 0.02)
         scene = sphere.union(new_box, sphere, box2)
-        print(3)
         #scene = scene.select_z(0, 1)  # FIXME: does not work
         # sample our box to something different
         box = box.sampled("fast_compute_normals", 0.01)
-        print(4)
         surf = box.create_surface_model(0.02)
         poses, score = surf.find_surface_model(scene, 0.04, 0.1, 0.01)
-        print(5)
         if poses:
             tr = box.transformed(poses[0])
         self.assertGreater(len(poses), 1)
         #embed()
+
+    def test_fit(self):
+        box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
+        plane = box.fit_primitive({"primitive_type":"plane"})
+        embed()
 
 
 if __name__ == "__main__":

@@ -291,16 +291,19 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
-    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0.5, num_matches=4):
+    def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0.5, params=None):
+        """
+        Find our surface in a scene. Read Halcon documentation for more
+        params is a dict of parameters in Halcon style
+
+        List of params values (Halcon 13): "3d_edge_min_amplitude_abs", "3d_edge_min_amplitude_rel", "3d_edges", "dense_pose_refinement", "max_overlap_dist_abs", "max_overlap_dist_rel", "num_matches", "pose_ref_dist_threshold_abs", "pose_ref_dist_threshold_rel", "pose_ref_num_steps", "pose_ref_scoring_dist_abs", "pose_ref_scoring_dist_rel", "pose_ref_sub_sampling", "pose_ref_use_scene_normals", "scene_normal_computation", "score_type", "sparse_pose_refinement", "viewpoint"
+        """
+        if params is None:
+            params = {}
         cdef cpp.HString reHandle
-        names = []
-        names.append("num_matches")
-        vals = []
-        vals.append(num_matches)
         score = HTuple()
         cdef cpp.HSurfaceMatchingResultArray sres
-
-        cdef cpp.HPoseArray pose_array = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(names), _list2tuple(vals), &score.me, &sres)
+        cdef cpp.HPoseArray pose_array = self.me.FindSurfaceModel(model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(params.keys()), _list2tuple(params.values()), &score.me, &sres)
         poses = _hposear2list(pose_array)
         return poses, score.to_list()
 
@@ -485,6 +488,24 @@ cdef class Model3D:
         cdef cpp.HObjectModel3DArray ar = cpp.HObjectModel3DArray(car, nb)
         m = Model3D()
         m.me = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
+        return m
+
+    def fit_primitive(self, params):
+        """
+        fit a primitive. See Halcon doc
+        params is a dic of key val. for example:
+        {"primitive_type": "cylinder", min_radius=0.1, max_radius:0.2, "fitting_algorythm":"least_squares"}
+        primitive_type is of: cylinder, plane, sphere, all
+
+        """
+        names = [bytes(name, "utf-8") for name in  params.keys()]
+        vals = list(params.keys())
+
+        for idx, val in enumerate(vals):
+            if isinstance(val, str):
+                vals[idx] = bytes(val, "utf-8")
+        m = Model3D()
+        m.me = self.me.FitPrimitivesObjectModel3d(_list2tuple(names), _list2tuple(vals))
         return m
 
 
