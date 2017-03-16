@@ -4,6 +4,7 @@ from libcpp cimport string
 cimport numpy as cnp
 cimport hcn.cpp_hcn as cpp
 from cython.view cimport array as cvarray
+from cython import NULL
 
 
 from enum import Enum
@@ -327,11 +328,19 @@ cdef class Model3D:
         self.me = cpp.HObjectModel3D()
 
     @staticmethod
-    def from_file(str path, str scale):
+    cdef from_cpp(cpp.HObjectModel3D obj):
+        m = Model3D()
+        m.me = obj
+        return m
+
+    @staticmethod
+    def from_file(str path, str scale, params=None):
+        if params is None:
+            params = {}
         model = Model3D()
         cdef bytes bscale = scale.encode() # no idea why I need thi intemediary step for HTuple and not for HString??
         cdef cpp.HTuple status;
-        model.me = cpp.HObjectModel3D(cpp.HString(path.encode()), cpp.HTuple(bscale), cpp.HTuple(), cpp.HTuple(), &status)
+        model.me = cpp.HObjectModel3D(cpp.HString(path.encode()), cpp.HTuple(bscale), _list2tuple(params.keys()), _list2tuple(params.values()), &status)
         return model
     
     @staticmethod
@@ -342,10 +351,11 @@ cdef class Model3D:
 
     def get_bounding_box(self, oriented=True):
         cdef double x, y, z
-        cdef cpp.HPose pose = self.me.SmallestBoundingBoxObjectModel3d("oriented", &x, &y, &z)
+        pose = HPose()
+        pose.me = self.me.SmallestBoundingBoxObjectModel3d("oriented", &x, &y, &z)
         #p = HTuple()
         #p.me = pose.ConvertToTuple()
-        return x, y, z
+        return pose, (x, y, z)
 
     def to_array(self):
         cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_x"))
@@ -490,23 +500,90 @@ cdef class Model3D:
         m.me = cpp.HObjectModel3D.UnionObjectModel3d(ar, cpp.HString(b"points_surface"))
         return m
 
-    def fit_primitive(self, params):
+    def fit_primitive(self, params=None):
         """
         fit a primitive. See Halcon doc
         params is a dic of key val. for example:
-        {"primitive_type": "cylinder", min_radius=0.1, max_radius:0.2, "fitting_algorythm":"least_squares"}
+        {"primitive_type": "cylinder", min_radius=0.1, max_radius:0.2, "fitting_algorithm":"least_squares"}
         primitive_type is of: cylinder, plane, sphere, all
 
         """
-        names = [bytes(name, "utf-8") for name in  params.keys()]
-        vals = list(params.keys())
+        if params is None:
+            params = {}
+        cdef cpp.HObjectModel3DArray ar = cpp.HObjectModel3DArray(&self.me, 1)
+        cdef cpp.HObjectModel3DArray results = cpp.HObjectModel3D.FitPrimitivesObjectModel3d(ar, _list2tuple(params.keys()), _list2tuple(params.values()))
+        res = []
+        for i in range(results.Length()):
+            m = Model3D()
+            m.me = results.Tools()[i]
+            res.append(m)
+        return res 
 
-        for idx, val in enumerate(vals):
-            if isinstance(val, str):
-                vals[idx] = bytes(val, "utf-8")
+    def fit_primitive2(self, params=None):
+        """
+        fit a primitive. See Halcon doc
+        params is a dic of key val. for example:
+        {"primitive_type": "cylinder", min_radius=0.1, max_radius:0.2, "fitting_algorithm":"least_squares"}
+        primitive_type is of: cylinder, plane, sphere, all
+
+        """
+        if params is None:
+            params = {}
         m = Model3D()
-        m.me = self.me.FitPrimitivesObjectModel3d(_list2tuple(names), _list2tuple(vals))
+        m.me = self.me.FitPrimitivesObjectModel3d(_list2tuple(params.keys()), _list2tuple(params.values()))
         return m
+
+
+    def prepare(self, purpose, overwrite=True, params=None):
+        if overwrite:
+            overwrite = b"true"
+        else:
+            overwrite = b"false"
+        if params is None:
+            params = {}
+        self.me.PrepareObjectModel3d(bytes(purpose, "utf-8"), overwrite, _list2tuple(params.keys()), _list2tuple(params.values()))
+
+    def segment(self, params=None):
+        """
+        Segment a set of 3D points
+        params are: "fitting_algorithm", "max_curvature_diff", "max_orientation_diff", "max_radius", "min_area", "min_radius", "output_point_coord", "output_xyz_mapping", "primitive_type"
+        """
+        if params is None:
+            params = {}
+        m = Model3D()
+        print("RUN with", params.keys(), params.values())
+        m.me = self.me.SegmentObjectModel3d(_list2tuple(params.keys()), _list2tuple(params.values()))
+        return m
+
+    def segment2(self, params=None):
+        if params is None:
+            params = {}
+        print("RUN with", params.keys(), params.values())
+        cdef cpp.HObjectModel3DArray ar = cpp.HObjectModel3DArray(&self.me, 1)
+        cdef cpp.HObjectModel3DArray results = cpp.HObjectModel3D.SegmentObjectModel3d(ar, _list2tuple(params.keys()), _list2tuple(params.values()))
+        res = []
+        for i in range(results.Length()):
+            m = Model3D()
+            m.me = results.Tools()[i]
+            res.append(m)
+        return res 
+
+    def distance(self, Model3D model, double max_dist=0, params=None):
+        """
+        Compute distance. result is stored in attribute 'distance'
+        """
+        if params is None:
+            params = {}
+        self.me.DistanceObjectModel3d(model.me, cpp.HPose(), cpp.HTuple(max_dist), _list2tuple(params.keys()), _list2tuple(params.values()))
+
+    def get_params(self, params):
+        if not isinstance(params, list):
+            params = [params]
+        tup = HTuple()
+        tup.me = self.me.GetObjectModel3dParams(_list2tuple(params))
+        box.get_params("&distance")
+        return tup
+
 
 
 cdef class Plane(Model3D):
