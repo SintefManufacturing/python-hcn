@@ -181,22 +181,24 @@ class TestsModel3D(unittest.TestCase):
         self.assertGreater(len(poses), 1)
 
     def test_segment(self):
-        #box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
-        #box = box.sampled("fast_compute_normals", 0.001)
-        box = hcn.Model3D.from_file("KA/punktskyer/ka1.ply", "mm", params={"xyz_map_width":2024})
+        box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
+        box = box.sampled("fast_compute_normals", 0.001)
+        #box = hcn.Model3D.from_file("KA/punktskyer/ka1.ply", "mm", params={"xyz_map_width":2024})
         #box.prepare("segmentation")
         seg = box.segment2({"fitting":"true", "primitive_type":"plane", "fitting_algorithm":"least_squares"})
         #seg = box.segment({"primitive_type":"plane"})
         #seg = box.segment2({"fitting":"false", "output_xyz_mapping":"false"})
         #seg = box.segment()
-        embed()
+        s = seg[0]
+        #embed()
 
     def test_fit(self):
-        box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
-        box = box.sampled("fast", 0.01)
-        plane = box.fit_primitive({"primitive_type":"all", "output_point_coord":"false"})
-        #plane = box.fit_primitive()
-        embed()
+        mod = hcn.Sphere(0.1, 0.2, 0.3, 0.1)
+        mod = mod.sampled("fast", 0.01)
+        results = mod.fit_primitive({"primitive_type":"all"})
+        res = results[0]
+        ptype = res.get_attribute("primitive_type").to_list()
+        self.assertEqual(ptype[0], b"sphere")
 
     def test_distance(self):
         box = hcn.Box(hcn.HPose(0.1, 0.2, -0.05), 0.1, 0.2, 0.3)
@@ -204,7 +206,7 @@ class TestsModel3D(unittest.TestCase):
         sphere = hcn.Sphere(0.1, 0.2, -0.05, 0.2)
         sphere = sphere.sampled("fast", 0.1)
         box.distance(sphere)
-        dists = box.get_params("&distance")
+        dists = box.get_attribute("&distance")
         self.assertEqual(box.to_array().shape[0], dists.length())
 
 

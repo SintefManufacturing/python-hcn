@@ -358,31 +358,16 @@ cdef class Model3D:
         return pose, (x, y, z)
 
     def to_array(self):
-        cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_x"))
-        cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_y"))
-        cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_coord_z"))
-        nx = _ht2ar(x)
-        nx.shape = -11, 1
-        ny = _ht2ar(y)
-        ny.shape = -1, 1
-        nz = _ht2ar(z)
-        nz.shape = -1, 1
-        return np.hstack((nx, ny, nz))
+        cdef cpp.HTuple points = self.me.GetObjectModel3dParams(_list2tuple([b"point_coord_x", b"point_coord_y", "point_coord_z"]))
+        ar = _ht2ar(points)
+        ar.shape = (3, points.Length()/3)
+        return ar.transpose()
 
-    def normals_to_array(self, divider=1):
-        cdef cpp.HTuple x = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_x"))
-        cdef cpp.HTuple y = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_y"))
-        cdef cpp.HTuple z = self.me.GetObjectModel3dParams(cpp.HTuple(b"point_normal_z"))
-        nx = _ht2ar(x)
-        nx.shape = -11, 1
-        ny = _ht2ar(y)
-        ny.shape = -1, 1
-        nz = _ht2ar(z)
-        nz.shape = -1, 1
-        if divider != 1:
-            return np.hstack((nx, ny, nz)) / divider
-        else:
-            return np.hstack((nx, ny, nz))
+    def normals_to_array(self):
+        cdef cpp.HTuple points = self.me.GetObjectModel3dParams(_list2tuple([b"point_normal_x", b"point_normal_y", "point_normal_z"]))
+        ar = _ht2ar(points)
+        ar.shape = (3, points.Length()/3)
+        return ar.transpose()
 
     def points_and_normals_to_array(self, divider=1):
         pts = self.to_array()
@@ -576,12 +561,16 @@ cdef class Model3D:
             params = {}
         self.me.DistanceObjectModel3d(model.me, cpp.HPose(), cpp.HTuple(max_dist), _list2tuple(params.keys()), _list2tuple(params.values()))
 
-    def get_params(self, params):
+    def get_attribute(self, params):
+        """
+        return value of one or more attributes
+        possible values in halcon 13 are: 
+"blue", "bounding_box1", "center", "diameter_axis_aligned_bounding_box", "extended_attribute_names", "green", "has_distance_computation_data", "has_extended_attribute", "has_lines", "has_point_normals", "has_points", "has_polygons", "has_primitive_data", "has_primitive_rms", "has_segmentation_data", "has_shape_based_matching_3d_data", "has_surface_based_matching_data", "has_triangles", "has_xyz_mapping", "lines", "mapping_col", "mapping_row", "neighbor_distance", "num_extended_attribute", "num_lines", "num_neighbors", "num_neighbors_fast", "num_points", "num_polygons", "num_primitive_parameter_extension", "num_triangles", "point_coord_x", "point_coord_y", "point_coord_z", "point_normal_x", "point_normal_y", "point_normal_z", "polygons", "primitive_parameter", "primitive_parameter_extension", "primitive_parameter_pose", "primitive_pose", "primitive_rms", "primitive_type", "red", "reference_point", "score", "triangles"
+        """
         if not isinstance(params, list):
             params = [params]
         tup = HTuple()
         tup.me = self.me.GetObjectModel3dParams(_list2tuple(params))
-        box.get_params("&distance")
         return tup
 
 
