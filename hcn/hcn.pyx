@@ -284,6 +284,14 @@ cdef _hposear2list(cpp.HPoseArray& ar):
         poses.append(p)
     return poses
 
+cdef _model_array_to_model_list(cpp.HObjectModel3DArray& ar):
+    res = []
+    for i in range(ar.Length()):
+        m = Model3D()
+        m.me = ar.Tools()[i]
+        res.append(m)
+    return res 
+
 
 cdef class Surface:
 
@@ -546,12 +554,7 @@ cdef class Model3D:
         print("RUN with", params.keys(), params.values())
         cdef cpp.HObjectModel3DArray ar = cpp.HObjectModel3DArray(&self.me, 1)
         cdef cpp.HObjectModel3DArray results = cpp.HObjectModel3D.SegmentObjectModel3d(ar, _list2tuple(params.keys()), _list2tuple(params.values()))
-        res = []
-        for i in range(results.Length()):
-            m = Model3D()
-            m.me = results.Tools()[i]
-            res.append(m)
-        return res 
+        return _model_array_to_model_list(results)
 
     def distance(self, Model3D model, double max_dist=0, params=None):
         """
@@ -572,7 +575,14 @@ cdef class Model3D:
         tup = HTuple()
         tup.me = self.me.GetObjectModel3dParams(_list2tuple(params))
         return tup
-
+    
+    def get_connected_components(self, feature, double value):
+        """
+        Get connected componented computed using one of following features:
+        "angle", "distance_3d", "distance_mapping", "lines", "mesh"
+        """
+        cdef cpp.HObjectModel3DArray results = self.me.ConnectionObjectModel3d(feature.encode(), value) 
+        return _model_array_to_model_list(results)
 
 
 cdef class Plane(Model3D):

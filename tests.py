@@ -190,7 +190,7 @@ class TestsModel3D(unittest.TestCase):
         #seg = box.segment2({"fitting":"false", "output_xyz_mapping":"false"})
         #seg = box.segment()
         s = seg[0]
-        #embed()
+        embed()
 
     def test_fit(self):
         mod = hcn.Sphere(0.1, 0.2, 0.3, 0.1)
@@ -198,6 +198,7 @@ class TestsModel3D(unittest.TestCase):
         results = mod.fit_primitive({"primitive_type":"all"})
         res = results[0]
         ptype = res.get_attribute("primitive_type").to_list()
+        embed()
         self.assertEqual(ptype[0], b"sphere")
 
     def test_distance(self):

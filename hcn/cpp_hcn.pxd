@@ -136,6 +136,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         void PrepareObjectModel3d(const char* Purpose, const char* OverwriteData, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
         @staticmethod
         HObjectModel3DArray SegmentObjectModel3d(const HObjectModel3DArray& ObjectModel3D, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
+        HObjectModel3DArray ConnectionObjectModel3d(const char* Feature, double Value) const;
 
 
     cdef cppclass HObjectModel3DArray:
