@@ -91,11 +91,30 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         void Clear()
 
 
+cdef extern from "HRegion.h" namespace "HalconCpp":
+    cdef cppclass HRegion:
+        HRegion() except +raise_py_error
+
+cdef extern from "HImage.h" namespace "HalconCpp":
+    cdef cppclass HImage:
+        HImage() except +raise_py_error
+        HImage(const HString& FileName) except +raise_py_error
+        #void add "operator[]"(int)
+        #long operator[](int)
+        #const HImage operator [] (long index) except +raise_py_error
+        HTuple Width()
+        HTuple Height()
+        void WriteImage(const HString& Format, long FillColor, const HString& FileName) except +raise_py_error
+        HImage CropRectangle1(long Row1, long Column1, long Row2, long Column2) except +raise_py_error
+        HImage InspectShapeModel(HRegion* ModelRegions, long NumLevels, long Contrast) except +raise_py_error
+ 
+
 cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
     cdef cppclass HSurfaceModel:
         #constructors
         HSurfaceModel() except +raise_py_error
-        HSurfaceModel(const char* FileName) 
+        HSurfaceModel(const char* FileName) except +raise_py_error
+
         HPoseArray FindSurfaceModel(const HObjectModel3D&, double RelSamplingDistance, double KeyPointFraction, const HTuple& MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResultArray*)  except +raise_py_error
         HPose RefineSurfaceModelPose(const HObjectModel3D& ObjectModel3D, const HPose& InitialPose, double MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResult* SurfaceMatchingResultID) const;
 

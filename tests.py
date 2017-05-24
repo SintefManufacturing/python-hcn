@@ -190,7 +190,7 @@ class TestsModel3D(unittest.TestCase):
         #seg = box.segment2({"fitting":"false", "output_xyz_mapping":"false"})
         #seg = box.segment()
         s = seg[0]
-        embed()
+        #embed()
 
     def test_fit(self):
         mod = hcn.Sphere(0.1, 0.2, 0.3, 0.1)
@@ -198,7 +198,7 @@ class TestsModel3D(unittest.TestCase):
         results = mod.fit_primitive({"primitive_type":"all"})
         res = results[0]
         ptype = res.get_attribute("primitive_type").to_list()
-        embed()
+        #embed()
         self.assertEqual(ptype[0], b"sphere")
 
     def test_distance(self):
@@ -209,6 +209,25 @@ class TestsModel3D(unittest.TestCase):
         box.distance(sphere)
         dists = box.get_attribute("&distance")
         self.assertEqual(box.to_array().shape[0], dists.length())
+
+
+class TestsImage(unittest.TestCase):
+
+    def test_open(self):
+        im = hcn.Image('tests/image.jpg')
+        self.assertIsInstance(im.width, int)
+        self.assertIsInstance(im.height, int)
+        #im.height())
+
+    def test_crop(self):
+        im = hcn.Image('tests/image.jpg')
+        crp = im.croped(50, 1030, 1130, 1330)
+        crp.write("toto.jpg")
+        crp.write("toto.tiff")
+        self.assertEqual(crp.width, 1330 - 1030 + 1)
+        self.assertEqual(crp.height, 1130 - 50 + 1)
+
+
 
 
 

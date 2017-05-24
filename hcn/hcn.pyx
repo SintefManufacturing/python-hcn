@@ -566,7 +566,7 @@ cdef class Model3D:
 
     def get_attribute(self, params):
         """
-        return value of one or more attributes
+        return value of one or more attributes hacon tuple
         possible values in halcon 13 are: 
 "blue", "bounding_box1", "center", "diameter_axis_aligned_bounding_box", "extended_attribute_names", "green", "has_distance_computation_data", "has_extended_attribute", "has_lines", "has_point_normals", "has_points", "has_polygons", "has_primitive_data", "has_primitive_rms", "has_segmentation_data", "has_shape_based_matching_3d_data", "has_surface_based_matching_data", "has_triangles", "has_xyz_mapping", "lines", "mapping_col", "mapping_row", "neighbor_distance", "num_extended_attribute", "num_lines", "num_neighbors", "num_neighbors_fast", "num_points", "num_polygons", "num_primitive_parameter_extension", "num_triangles", "point_coord_x", "point_coord_y", "point_coord_z", "point_normal_x", "point_normal_y", "point_normal_z", "polygons", "primitive_parameter", "primitive_parameter_extension", "primitive_parameter_pose", "primitive_pose", "primitive_rms", "primitive_type", "red", "reference_point", "score", "triangles"
         """
@@ -603,6 +603,83 @@ cdef class Box(Model3D):
     def __init__(self, HPose pose, double x, double y, double z):
         Model3D.__init__(self)
         self.me.GenBoxObjectModel3d(pose.me, x, y, z)
+
+
+cdef class Region:
+
+    cdef cpp.HRegion me
+
+    def __cinit__(self, path=None):
+        self.me = cpp.HRegion()
+
+
+cdef class Image:
+
+    cdef cpp.HImage me
+
+    def __cinit__(self, path=None):
+        if path is None:
+            self.me = cpp.HImage()
+        else:
+            self.me = cpp.HImage(cpp.HString(path.encode()))
+
+    def to_array(self):
+        #FIXME
+        cdef int n = self.me.Width()[0].L() * self.me.Height()[0].L()
+        #result = cnp.empty(n, dtype=np.long_t)
+        #for i in range(n):
+            #result[i] = self.me[i]
+        #result.shape = self.me.Width()[0].L(), self.me.Height()[0].L()
+        #return result
+
+    def write(self, str path, fmt=None, long fillcolor=0):
+        """
+        suggested format: 
+"tiff", "tiff mask", "tiff alpha", "tiff deflate 9", "tiff deflate 9 alpha", "tiff jpeg 90", "tiff lzw", "tiff lzw alpha ", "tiff packbits", "bigtiff", "bigtiff mask", "bigtiff alpha", "bigtiff deflate 9", "bigtiff deflate 9 alpha", "bigtiff jpeg 90", "bigtiff lzw", "bigtiff lzw alpha ", "bigtiff packbits", "bmp", "jpeg", "jpeg 100", "jpeg 80", "jpeg 60", "jpeg 40", "jpeg 20", "jp2", "jp2 50", "jp2 40", "jp2 30", "jp2 20", "jpegxr", "jpegxr 50", "jpegxr 40", "jpegxr 30", "jpegxr 20", "png", "png best", "png fastest", "png none", "ima", "hobj"
+        """
+        if fmt is None:
+            if path[-4:] == '.jpg':
+                fmt = b'jpeg 60'
+            elif path[-4:] == '.png':
+                fmt = b'png'
+            elif path[-5:] == '.tiff':
+                fmt = b'tiff'
+            elif path[-4:] == '.bmp':
+                fmt = b'bmp'
+            else:
+                raise Exception('Please specifiy format')
+        self.me.WriteImage(cpp.HString(fmt), fillcolor, cpp.HString(path.encode()))
+
+
+    @staticmethod
+    def from_file(str path):
+        im = Image()
+        im.me = cpp.HImage(cpp.HString(path.encode()))
+        return im
+
+    @property
+    def width(self):
+        ht = HTuple()
+        ht.me = self.me.Width()
+        return ht.to_list()[0]
+ 
+    @property
+    def height(self):
+        ht = HTuple()
+        ht.me = self.me.Height()
+        return ht.to_list()[0]
+
+    def croped(self, int x1, int y1, int x2, int y2):
+        im = Image()
+        im.me = self.me.CropRectangle1(x1, y1, x2, y2)
+        return im
+
+    def inspect_shape_model(self, int level, int contrast):
+        reg = Region()
+        im = Image()
+        im.me = self.me.InspectShapeModel(&reg.me, level, contrast)
+        return im, reg
+
 
 
 
