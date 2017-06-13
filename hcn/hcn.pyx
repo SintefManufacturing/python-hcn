@@ -252,12 +252,23 @@ cdef class HPose:
     def __repr__(self):
         return "HPose({})".format(self.to_list())
 
+    def to_quaternion(self):
+        """
+        Return list containing:
+          [:3] Pos vector
+          [3:] Rotation expressed as quaternion
+        """
+        pos = self.to_list()[:3]
+        ori = _pose2quat(self.me)
+        return pos + ori
+
     def to_transform(self):
         """
-        return a transform.
-        # FIXME: check hos rotation is defined!!!!
+        Return a math3d transform.
         """
-        return m3d.Transform(self.to_list()[:-1])
+        pos = m3d.Vector(self.to_list()[:3])
+        ori = m3d.Orientation(m3d.UnitQuaternion(*_pose2quat(self.me)))
+        return  m3d.Transform(ori, pos)
 
 
 
