@@ -64,12 +64,13 @@ cdef class HTuple:
         pyt.me = t
         return pyt
 
-    @staticmethod
-    def from_array_int(cnp.ndarray[cnp.long_t, ndim=1, mode="c"] arg):
-        cdef cpp.HTuple t = cpp.HTuple(<long*>&arg[0], <int> arg.shape[0])
-        pyt = HTuple()
-        pyt.me = t
-        return pyt
+    #TODO: Cast raises error when compiling on windows
+    #@staticmethod
+    #def from_array_int(cnp.ndarray[cnp.long_t, ndim=1, mode="c"] arg):
+    #    cdef cpp.HTuple t = cpp.HTuple(<long*>&arg[0], <int> arg.shape[0])
+    #    pyt = HTuple()
+    #    pyt.me = t
+    #    return pyt
 
     @staticmethod
     def from_double(double val):
@@ -108,11 +109,12 @@ cdef class HTuple:
         cdef cnp.double_t[:] view = <cnp.double_t[:n]> self.me.ToDArr()
         return np.asarray(view)
 
-    def to_array_int(self):
-        cdef int n = self.me.Length()
-        #cdef cnp.long_t[:] view = <cnp.long_t[:n]> self.me.LArr()  # cython does not want this..
-        cdef long[:] view = <long[:n]> self.me.ToLArr()
-        return np.asarray(view)
+    #TODO: Cast raises error when compiling on windows
+    #def to_array_int(self):
+    #    cdef int n = self.me.Length()
+    #    #cdef cnp.long_t[:] view = <cnp.long_t[:n]> self.me.LArr()  # cython does not want this..
+    #    cdef long[:] view = <long[:n]> self.me.ToLArr()
+    #    return np.asarray(view)
 
     def to_array_string(self):
         cdef int n = self.me.Length()

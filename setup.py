@@ -23,7 +23,7 @@ setup(
     ext_modules=cythonize([
         Extension(
             name="hcn.hcn",
-            sources=["hcn\hcn.pyx", "hcn\cy_handler.cpp"],
+            sources=["hcn/hcn.pyx", "hcn/cy_handler.cpp"],
             include_dirs=dirs_include,
             libraries=["halconcpp"],
             library_dirs=dirs_library,
