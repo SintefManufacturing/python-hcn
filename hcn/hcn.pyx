@@ -6,7 +6,6 @@ cimport hcn.cpp_hcn as cpp
 from cython.view cimport array as cvarray
 from cython import NULL
 
-
 from enum import Enum
 
 MATH3D = True
@@ -313,6 +312,12 @@ cdef class Surface:
     def __cinit__(self):
         self.me = cpp.HSurfaceModel()
 
+    @staticmethod
+    def from_file(path):
+        surf = Surface()
+        surf.me = cpp.HSurfaceModel(path.encode())
+        return surf
+
     def find_surface_model(self, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0.5, params=None):
         """
         Find our surface in a scene. Read Halcon documentation for more
@@ -329,6 +334,22 @@ cdef class Surface:
         poses = _hposear2list(pose_array)
         return poses, score.to_list()
 
+    def find_surface_model_image(self, Image img, Model3D model, double rel_sample_dist=0.05, double key_point_fraction=0.2, double min_score=0.5, params=None):
+        """
+        Find our surface in scene and 2d image. Read Halcon documentation for more
+        params is a dict of parameters in Halcon style
+
+        List of params values (Halcon 13): "3d_edge_min_amplitude_abs", "3d_edge_min_amplitude_rel", "3d_edges", "dense_pose_refinement", "max_overlap_dist_abs", "max_overlap_dist_rel", "num_matches", "pose_ref_dist_threshold_abs", "pose_ref_dist_threshold_rel", "pose_ref_num_steps", "pose_ref_scoring_dist_abs", "pose_ref_scoring_dist_rel", "pose_ref_sub_sampling", "pose_ref_use_scene_normals", "scene_normal_computation", "score_type", "sparse_pose_refinement", "viewpoint"
+        """
+        if params is None:
+            params = {}
+        cdef cpp.HString reHandle
+        score = HTuple()
+        cdef cpp.HSurfaceMatchingResultArray sres
+        cdef cpp.HPoseArray pose_array = self.me.FindSurfaceModelImage(img.me, model.me, rel_sample_dist, key_point_fraction, cpp.HTuple(min_score), cpp.HString(b"false"), _list2tuple(params.keys()), _list2tuple(params.values()), &score.me, &sres)
+        poses = _hposear2list(pose_array)
+        return poses, score.to_list()
+
     def refine_pose(self, Model3D model, HPose pose, double min_score):
         new_pose = HPose()
         cdef cpp.HString handle
@@ -339,7 +360,14 @@ cdef class Surface:
         score = HTuple()
         new_pose.me = self.me.RefineSurfaceModelPose(model.me, pose.me, min_score, cpp.HString("false"),  _list2tuple(names), _list2tuple(vals), &score.me, &sres)
         return new_pose, score.to_list()
-   
+
+    def set_cam_params(self, str path):
+        cdef cpp.HCamPar cp
+        cp.ReadCamPar(cpp.HString(path.encode()))
+        self.me.SetSurfaceModelParam(cpp.HString(b"camera_parameter"), cpp.HTuple(cp))
+
+    def to_file(self, path):
+        self.me.WriteSurfaceModel(path.encode())               
 
 cdef class Model3D:
 
@@ -430,12 +458,14 @@ cdef class Model3D:
         m.me = self.me.SmoothObjectModel3d(b"mls", _list2tuple(names), _list2tuple(vals))
         return m
 
-    def create_surface_model(self, double dist, invert_normals="false"):
+    def create_surface_model(self, double dist, invert_normals="false", train_edges="false"):
         s = Surface()
         names = []
         vals = []
         names.append(b"model_invert_normals")
+        names.append(b"train_3d_edges")
         vals.append(invert_normals)
+        vals.append(train_edges)
         s.me = self.me.CreateSurfaceModel(dist, _list2tuple(names), _list2tuple(vals))
         return s
 
@@ -596,7 +626,17 @@ cdef class Model3D:
         """
         cdef cpp.HObjectModel3DArray results = self.me.ConnectionObjectModel3d(feature.encode(), value) 
         return _model_array_to_model_list(results)
-
+ 
+    def triangulate(self, method):
+        """
+        Method (string): 'polygon_triangulation', 'greedy' or 'implicit'
+        """
+        m = Model3D()
+        names = []
+        vals = []
+        cdef long* info
+        m.me = self.me.TriangulateObjectModel3d(method.encode(), _list2tuple(names), _list2tuple(vals), info)
+        return m
 
 cdef class Plane(Model3D):
     def __init__(self, HPose pose, xext_vect, yext_vect):
@@ -692,8 +732,6 @@ cdef class Image:
         im = Image()
         im.me = self.me.InspectShapeModel(&reg.me, level, contrast)
         return im, reg
-
-
 
 
 

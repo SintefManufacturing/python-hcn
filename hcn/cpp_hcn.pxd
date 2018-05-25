@@ -67,6 +67,7 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple(double) except +raise_py_error
         HTuple(double*, int) except +raise_py_error
         HTuple(long*, int) except +raise_py_error
+        HTuple(HCamPar) except +raise_py_error
         int Type()
         int Length()
 
@@ -108,6 +109,11 @@ cdef extern from "HImage.h" namespace "HalconCpp":
         HImage CropRectangle1(long Row1, long Column1, long Row2, long Column2) except +raise_py_error
         HImage InspectShapeModel(HRegion* ModelRegions, long NumLevels, long Contrast) except +raise_py_error
  
+cdef extern from "HCamPar.h" namespace "HalconCpp":
+    cdef cppclass HCamPar:
+        HCamPar() except +raise_py_error
+        void ReadCamPar(const HString& CamParFile)
+        void WriteCamPar(const HString& CamParFile) const;
 
 cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
     cdef cppclass HSurfaceModel:
@@ -115,8 +121,11 @@ cdef extern from "HSurfaceModel.h" namespace "HalconCpp":
         HSurfaceModel() except +raise_py_error
         HSurfaceModel(const char* FileName) except +raise_py_error
 
-        HPoseArray FindSurfaceModel(const HObjectModel3D&, double RelSamplingDistance, double KeyPointFraction, const HTuple& MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResultArray*)  except +raise_py_error
+        HPoseArray FindSurfaceModel(const HObjectModel3D&, double RelSamplingDistance, double KeyPointFraction, const HTuple& MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResultArray*) except +raise_py_error
+        HPoseArray FindSurfaceModelImage(const HImage& Image, const HObjectModel3D& ObjectModel3D, double RelSamplingDistance, double KeyPointFraction, const HTuple& MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResultArray*) except +raise_py_error 
         HPose RefineSurfaceModelPose(const HObjectModel3D& ObjectModel3D, const HPose& InitialPose, double MinScore, const HString& ReturnResultHandle, const HTuple& GenParamName, const HTuple& GenParamValue, HTuple* Score, HSurfaceMatchingResult* SurfaceMatchingResultID) const;
+        void SetSurfaceModelParam(const HString& GenParamName, const HTuple& GenParamValue) const;
+        void WriteSurfaceModel(const char* FileName) const;
 
 
 cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
@@ -156,6 +165,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         @staticmethod
         HObjectModel3DArray SegmentObjectModel3d(const HObjectModel3DArray& ObjectModel3D, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
         HObjectModel3DArray ConnectionObjectModel3d(const char* Feature, double Value) const;
+        HObjectModel3D TriangulateObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue, long* Information) const;
 
 
     cdef cppclass HObjectModel3DArray:
