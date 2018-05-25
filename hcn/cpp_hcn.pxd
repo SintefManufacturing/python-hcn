@@ -91,7 +91,6 @@ cdef extern from "HalconCpp.h" namespace "HalconCpp":
         HTuple& Append(const HTuple&) except +raise_py_error
         void Clear()
 
-
 cdef extern from "HRegion.h" namespace "HalconCpp":
     cdef cppclass HRegion:
         HRegion() except +raise_py_error
@@ -165,7 +164,7 @@ cdef extern from "HObjectModel3D.h" namespace "HalconCpp":
         @staticmethod
         HObjectModel3DArray SegmentObjectModel3d(const HObjectModel3DArray& ObjectModel3D, const HTuple& GenParamName, const HTuple& GenParamValue) except +raise_py_error
         HObjectModel3DArray ConnectionObjectModel3d(const char* Feature, double Value) const;
-        HObjectModel3D TriangulateObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue, long* Information) const;
+        #HObjectModel3D TriangulateObjectModel3d(const char* Method, const HTuple& GenParamName, const HTuple& GenParamValue, const Hlong* Information) const;
 
 
     cdef cppclass HObjectModel3DArray:

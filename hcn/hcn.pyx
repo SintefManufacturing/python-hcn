@@ -21,7 +21,6 @@ class TupleType(Enum):
     String = 4
     Mixed = 8
 
-
 cdef class HTuple:
 
     cdef cpp.HTuple me
@@ -116,10 +115,11 @@ cdef class HTuple:
     #    return np.asarray(view)
 
     def to_array_string(self):
+        #FIXME
         cdef int n = self.me.Length()
-        result = cnp.empty(n, dtype=np.object)
-        for i in range(n):
-            result[i] = self.me[i].C()
+        #result = cnp.empty(n, dtype=np.object)
+        #for i in range(n):
+        #    result[i] = self.me[i].C()
 
     def to_array(self):
         dt = self.me.Type() 
@@ -627,16 +627,16 @@ cdef class Model3D:
         cdef cpp.HObjectModel3DArray results = self.me.ConnectionObjectModel3d(feature.encode(), value) 
         return _model_array_to_model_list(results)
  
-    def triangulate(self, method):
-        """
-        Method (string): 'polygon_triangulation', 'greedy' or 'implicit'
-        """
-        m = Model3D()
-        names = []
-        vals = []
-        cdef long* info
-        m.me = self.me.TriangulateObjectModel3d(method.encode(), _list2tuple(names), _list2tuple(vals), info)
-        return m
+    #def triangulate(self, method):
+    #    """
+    #    Method (string): 'polygon_triangulation', 'greedy' or 'implicit'
+    #    """
+    #    m = Model3D()
+    #   names = []
+    #    vals = []
+    #    cdef long* info
+    #    m.me = self.me.TriangulateObjectModel3d(method.encode(), _list2tuple(names), _list2tuple(vals), info)
+    #    return m
 
 cdef class Plane(Model3D):
     def __init__(self, HPose pose, xext_vect, yext_vect):
