@@ -404,6 +404,11 @@ cdef class Model3D:
         #p.me = pose.ConvertToTuple()
         return pose, (x, y, z)
 
+    def get_diameter(self):
+        cdef cpp.HTuple diameter = self.me.GetObjectModel3dParams(_list2tuple([b"diameter_axis_aligned_bounding_box"]))
+        ar = _ht2ar(diameter)
+        return ar[0]
+
     def to_array(self):
         cdef cpp.HTuple points = self.me.GetObjectModel3dParams(_list2tuple([b"point_coord_x", b"point_coord_y", "point_coord_z"]))
         ar = _ht2ar(points)
