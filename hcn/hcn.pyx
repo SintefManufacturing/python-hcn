@@ -374,6 +374,10 @@ cdef class Model3D:
     def __cinit__(self):
         self.me = cpp.HObjectModel3D()
 
+    @property
+    def diameter(self):
+        return self._get_diameter()
+
     @staticmethod
     cdef from_cpp(cpp.HObjectModel3D obj):
         m = Model3D()
@@ -404,7 +408,7 @@ cdef class Model3D:
         #p.me = pose.ConvertToTuple()
         return pose, (x, y, z)
 
-    def get_diameter(self):
+    def _get_diameter(self):
         cdef cpp.HTuple diameter = self.me.GetObjectModel3dParams(_list2tuple([b"diameter_axis_aligned_bounding_box"]))
         ar = _ht2ar(diameter)
         return ar[0]
